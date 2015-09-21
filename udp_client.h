@@ -2,12 +2,12 @@
 /*
  * UDP client API
  */
-char* UDPclient(const char *msg, const struct server *ecp)
+unsigned char* UDPclient(const char *msg, const struct server *ecp)
 {
 	int fd, n, addrlen;
 	struct sockaddr_in addr;
 	char buffer[BUFFER_SIZE];
-	char *answer = (char *) malloc(BUFFER_SIZE * sizeof(char));
+	unsigned char *answer = (unsigned char *) malloc(BUFFER_SIZE * sizeof(unsigned char));
 
 	/*Atribuicao da socket UDP */
 	if((fd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
@@ -33,7 +33,7 @@ char* UDPclient(const char *msg, const struct server *ecp)
 
 	addrlen = sizeof(addr);
 
-	if((n = recvfrom(fd,buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *)&addrlen))==-1)
+	if((n = recvfrom(fd, buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *)&addrlen))==-1)
 	{
 		printf("Error: recvfrom()\n");
 		free(answer);
@@ -41,19 +41,9 @@ char* UDPclient(const char *msg, const struct server *ecp)
 		exit(1);
 	}	
 
-	/* write(1,"echo: ",6);
-
-	if(n > 0)
-	write(1,buffer,n);
-	else
-	write(1,"NULL",4);	
-
-	printf("\n");
-	printHostInfo(addr);*/
-
 	close(fd);
 
-	strcpy(answer,buffer); /* CORRECT for buffer overflow */
+	memcpy(answer, buffer, strlen(buffer)); /* CORRECT for buffer overflow */
 
 	return answer;
 }

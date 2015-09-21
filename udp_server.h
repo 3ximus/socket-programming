@@ -8,6 +8,7 @@ void UDPserver(int port)
 	int fd, addrlen, nread;
 	struct sockaddr_in addr;
 	char buffer[BUFFER_SIZE];
+	char **parsed_buffer;
 	char msg[100];
 	char log_msg[60];
 	bzero(log_msg, 60);
@@ -38,9 +39,9 @@ void UDPserver(int port)
 		exit(1);
 	}
 
-	/* Example loging */
-	sprintf(log_msg, "Bind socket on port %d", port);
-	log_action(SERVER_LOG, log_msg, 4);
+	/* LOG */
+	sprintf(log_msg, "Started server on port %d", port);
+	log_action(SERVER_LOG, log_msg, 2);
 
 	while(1)
 	{
@@ -48,6 +49,14 @@ void UDPserver(int port)
 
 		/* Receive message from a socket */
 		nread = recvfrom(fd,buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
+		parsed_buffer = parseString(buffer, " ");
+
+		/* LOG */
+		bzero(log_msg, 60);
+		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", buffer,
+		 gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
+		 inet_ntoa(addr.sin_addr));
+		log_action(SERVER_LOG, log_msg, 0);
 
 		if(nread == -1)
 		{
@@ -55,15 +64,19 @@ void UDPserver(int port)
 			exit(1);
 		}
 
-		printf("%s\n",buffer);
-
-		if(strcmp(buffer,"TQR") == 0)
+		if(strcmp(parsed_buffer[0],"TQR") == 0)
 		{	
-			memset((void *)msg,(int)'\0',strlen(msg));	
+			memset((void *)msg,(int)'\0',strlen(msg));
+			/* TODO this should follow protocol with a AWT response */
 			strcpy(msg, readFromFile("topics.txt")); /* CORRECT for buffer overflow */
 		}
+		else if (strcmp(parsed_buffer[0], "TER") == 0){
+			/* TODO Look for available TES server */
+			strcpy(msg, parsed_buffer[1]);
+		}
 		else
-			strcpy(msg,"got it");
+			/* Reply with an error response */
+			strcpy(msg,"ERR");
 
 		/* Send a message on a socket */
 		if((sendto(fd,msg, sizeof(msg),0,(struct sockaddr*) &addr, addrlen)) == -1)
