@@ -1,12 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wpedantic
-EXECS =	ECP user 
+EXECS =	ecp_api user 
 
 all: $(EXECS)
 
-ECP: Resources.c UDP.c 
+ecp_api: resources.c
 
-user: Resources.c UDP.c 
+user: resources.c
 
 clean:
 	rm $(EXECS)

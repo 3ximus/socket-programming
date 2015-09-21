@@ -24,4 +24,7 @@ Está implementado:
 versão 0.1:
 Mesma implementação mas sem leaks de memória.
 -----------------------------------------------------------------------------------------
+[20/09/2015, 00:00]
+versão 0.2:
+Pequenas alteracoes em geral.
 

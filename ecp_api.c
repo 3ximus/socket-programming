@@ -1,13 +1,10 @@
-#include "UDP.h"
-#include "Resources.h"
+#include "udp_server.h"
+#include "resources.h"
 
 int main(int argc, char** argv)
 {
 	int port;
 
-	/* TODO */
-	/* Tornar mais robusto com a utilizacao das flags */
-	
 	if(argc == 1)
 		port = DEFAULT_PORT;
 	else if(argc == 3)
