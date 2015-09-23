@@ -1,26 +1,47 @@
 #include "../resources.h"
 #include "../comm_protocol.h"
 
-/*
- * UDP Server API
- */
-void UDPserver(int port){
-	int fd, addrlen, nread;
-	struct sockaddr_in addr;
-	char received_buffer[REQUEST_BUFFER_SIZE];
-	char **parsed_request; /* must be freed */
-	char log_msg[60];
-	unsigned char *reply_msg = NULL; /* must be freed */
 
-	/* 
-	Udp socket atribution.
-	create an endpoint for UDP communication. 
-	*/
+
+/*
+ * Starts a server on given or default port
+ * Creates a new socket using UDP and IPv4 and stores its file descriptor on the 2nd argument
+ * It accepts datagrams on any Internet interface
+ * Binds the newly created socket to the defined interface (in our case any available on the system)
+ * This forks the process and waits for incoming requests in the child process, returning the pid of the child.
+ * Important: If child_pid is not caught the server is lost and needs to be shutdown manually
+ * Note: Produces LOG entry
+ */
+int start_udp_server(int, int*);
+
+
+/* ----------------------------------------------- */
+
+
+/* Handle SIGTERM */
+void sigterm_handler(int x){
+	printf("[SERVER_MSG] Arrrhhh!!! You killed me with signal %d!!!\n", x);
+
+	exit(0);
+}
+
+
+int start_udp_server(int port, int *socket_fd){
+	int fd, addrlen, nread, child_pid = 0;
+	char received_buffer[REQUEST_BUFFER_SIZE];
+	char log_msg[60];
+	char **parsed_request; /* must be freed */
+	unsigned char *reply_msg = NULL; /* must be freed */
+	struct sockaddr_in addr;
+
+	/* Udp socket atribution create an endpoint for UDP communication. */
 	if((fd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
 	{
 		printf("Error: socket()\n");
 		exit(1);
 	}
+
+	*socket_fd = fd;
 
 	memset((void *)&addr,(int)'\0', sizeof(addr));
 
@@ -42,16 +63,26 @@ void UDPserver(int port){
 	sprintf(log_msg, "Started server on port %d", port);
 	log_action(SERVER_LOG, log_msg, 2);
 
-	while(1){
+	child_pid = fork();
+
+	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
+	while(child_pid == 0){
+
+		if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
+			perror("[ERROR] Couldnt catch SIGTERM");
 		
-		/* Receive message from a socket */
-		nread = recvfrom(fd, received_buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
+		/* Receive request message */
 		addrlen = sizeof(addr);
+		nread = recvfrom(fd, received_buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
 
 		/* parsed received buffer */
 		parsed_request = parseString(received_buffer, "\n");
 		parsed_request = parseString(received_buffer, " ");
-
+		
+		/* Print request */
+		printf("\rGot Request %s from %s\n> ", parsed_request[0], inet_ntoa(addr.sin_addr));
+		fflush(stdout);
+		
 		/* LOG */
 		bzero(log_msg, 60);
 		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
@@ -67,10 +98,11 @@ void UDPserver(int port){
 
 		if(strcmp(parsed_request[0],"TQR") == 0){
 			reply_msg = AWT_reply();
-			printf("%s", reply_msg);
+			printf("\rSending AWT reply\n> ");
+			fflush(stdout);
 		}
 		else if (strcmp(parsed_request[0], "TER") == 0){
-			/*reply_msg = AWTES_reply();*/
+			reply_msg = AWTES_reply();
 
 		}
 		else
@@ -88,5 +120,7 @@ void UDPserver(int port){
 		free(parsed_request);
 	}
 
+	/* This is left in here just in case, because socket is closed on the ecp_server_interface */
 	close(fd);
+	return child_pid;
 }

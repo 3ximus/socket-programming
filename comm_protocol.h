@@ -15,10 +15,6 @@
 #include "tcp/tcp_client.h"
 #include "resources.h"
 
-#define BIG_REPLY_BUFFER 1024
-#define SMALL_REPLY_BUFFER 128
-#define REQUEST_BUFFER_SIZE 32
-
 /* FUNCTION INDEX - DECLARATIONS */
 
 /* REQUESTS
@@ -28,20 +24,22 @@
 /*
  * Used to request list of topics from ECP server
  * Sends a TQR request to server and returns server reply
+ * Reply must be freed
  */
-unsigned char *TQR_request(const struct server* );
+unsigned char *TQR_request(int, const struct sockaddr_in*);
 
 /*
  * Used to request the TES server IP and PORT that host a questionarie passed on topic_number
  * Sends a TER request followed by topic_number to ECP server and returns server reply
+ * Reply must be freed
  */
-unsigned char *TER_request(const char *topic_number, const struct server*);
+unsigned char *TER_request(int, const char *topic_number, const struct sockaddr_in*);
 
 /* COMMENTS */
-unsigned char *RQT_request(const char *student_id, const struct server*);
+unsigned char *RQT_request(int, const char *student_id, const struct sockaddr_in*);
 
 /* COMMENTS */
-unsigned char *RQS_request(const char *sid_answer_sequence, const struct server*);
+unsigned char *RQS_request(int, const char *sid_answer_sequence, const struct sockaddr_in*);
 
 /* REPLIES
  * These are server side functions, only to be called on the server
@@ -69,18 +67,19 @@ unsigned char *check_reply_for_errors(unsigned char *);
 
 /* ----- REQUESTS -------- */
 
-unsigned char *TQR_request(const struct server* ecp_server){
-	unsigned char *server_reply = (unsigned char*)malloc(sizeof(unsigned char) * REQUEST_BUFFER_SIZE);
+unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
+	unsigned char *server_reply = NULL;
 	char *request = "TQR\n";	
 
 	/* contact ecp server with TQR request */
-	server_reply = UDPclient((unsigned char *)request, ecp_server);
+	send_udp_request(fd, (unsigned char *)request, addr);
+	server_reply = receive_udp_reply(fd, addr);
 	server_reply = check_reply_for_errors(server_reply);
 	return server_reply;
 }
 
-unsigned char *TER_request(const char *topic_number, const struct server* ecp_server){
-	unsigned char *server_reply = (unsigned char*)malloc(sizeof(unsigned char) * REQUEST_BUFFER_SIZE);
+unsigned char *TER_request(int fd, const char *topic_number, const struct sockaddr_in* addr){
+	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_SIZE] = "TER ";
 	char *endptr;
 
@@ -96,7 +95,9 @@ unsigned char *TER_request(const char *topic_number, const struct server* ecp_se
 	strncat(request, "\n", 1);
 
 	/* contact server with built request */
-	server_reply = UDPclient((unsigned char*)request, ecp_server);
+	send_udp_request(fd, (unsigned char *)request, addr);
+	server_reply = receive_udp_reply(fd, addr);
+	server_reply = check_reply_for_errors(server_reply);
 	return server_reply;
 }
 
@@ -133,7 +134,7 @@ unsigned char* AWT_reply(){
 
 unsigned char *AWTES_reply(){
 	unsigned char *server_reply = (unsigned char*)malloc(SMALL_REPLY_BUFFER * sizeof(unsigned char));
-
+	/* TODO */
 	return server_reply;
 }
 

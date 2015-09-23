@@ -1,51 +1,71 @@
 #include "../resources.h"
-/*
- * UDP client API
- */
-unsigned char* UDPclient(const unsigned char *request, const struct server *ecp)
-{
-	int fd, n, addrlen;
-	struct sockaddr_in addr;
-	unsigned char server_reply[SERVER_BUFFER_SIZE];
-	unsigned char *returned_server_reply = (unsigned char *) malloc(BUFFER_SIZE * sizeof(unsigned char));
 
+/*
+ * Create a socket for a new udp client
+ * Return socket file descriptor
+ * Builds the sockaddr_in argument to contain the ecp server IP (IPv4) and Port
+ * Always close the socket
+ */
+int start_udp_client();
+
+/*
+ * Send a request to a given ecp server defined in a sockaddr_in
+ */
+int send_udp_request(int, const unsigned char *, const struct sockaddr_in *);
+
+/*
+ * Check the server reply for a given request
+ * Returns pointer to allocated server reply, must be freed
+ */
+unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr);
+
+
+/* --------------------------- */
+
+int start_udp_client(struct sockaddr_in *addr, const struct server *ecp_server){
+	int fd;
 	/*Atribuicao da socket UDP */
-	if((fd = socket(AF_INET,SOCK_DGRAM,0)) == -1)
-	{
-		printf("Error: socket()\n");
-		free(returned_server_reply);
+	if((fd = socket(AF_INET,SOCK_DGRAM,0)) == -1){
+		perror("Error: creating socket()\n");
 		exit(1);
 	}
 
-	memset((void *)&addr,(int)'\0', sizeof(addr));
+	memset((void *)addr, (int)'\0', sizeof(struct sockaddr_in));
 
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = getHostIP((char *)ecp->name);
-	addr.sin_port = htons(ecp->port);
+	addr->sin_family = AF_INET;
+	addr->sin_addr.s_addr = getHostIP((char*)ecp_server->name);
+	addr->sin_port = htons(ecp_server->port);
+
+	return fd;
+}
+
+int send_udp_request(int fd, const unsigned char *request, const struct sockaddr_in *addr){
+	int n;
 
 	/* Send server request */
-	if((n = sendto(fd, request, strlen((char*)request), 0,(struct sockaddr *) &addr, sizeof(addr))) == -1)
+	if((n = sendto(fd, request, strlen((char*)request), 0,(struct sockaddr *)addr, sizeof(struct sockaddr))) == -1)
 	{
-		printf("Error: sendto()\n");
-		free(returned_server_reply);
+		perror("Error: sendto()\n");
 		close(fd);
 		exit(1);
 	}
+	return n;
+}
 
-	addrlen = sizeof(addr);
+unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
+	int n;
+	unsigned char server_reply[BIG_REPLY_BUFFER];
+	unsigned char *returned_server_reply = (unsigned char *) malloc(BIG_REPLY_BUFFER * sizeof(unsigned char));
 
 	/* receive server reply */
-	if((n = recvfrom(fd, server_reply,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *)&addrlen))==-1)
-	{
-		printf("Error: recvfrom()\n");
-		free(returned_server_reply);
+	if((n = recvfrom(fd, server_reply, BIG_REPLY_BUFFER, 0, (struct sockaddr*)addr, NULL)) == -1){
+		perror("Error: recvfrom()\n");
+		/*free(returned_server_reply);*/
 		close(fd);
 		exit(1);
 	}
 
-	close(fd);
-
-	memcpy(returned_server_reply, server_reply, n); /* CORRECT for buffer overflow */
+	memcpy(returned_server_reply, server_reply, n);
 
 	return returned_server_reply;
 }

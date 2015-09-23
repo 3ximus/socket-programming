@@ -8,18 +8,19 @@
 int main(int argc, char *argv[])
 {
 	const struct server *ecp_server = optParser(argc, argv);
-	long int sid = atoi(argv[1]);
-
+	int sid = atoi(argv[1]), socket_fd;
 	char cmd[50];
 	char **parsed_cmd;
 	unsigned char *server_reply;
+	struct sockaddr_in addr;
 
 	bzero(cmd, 50);
 
-	printf("SID: %ld\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
+	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
-	while(1)
-	{
+	socket_fd = start_udp_client(&addr, ecp_server);
+
+	while(1){
 		printf("> ");
 		/* TODO Still causes segmentation fault */
 		if ((fgets(cmd, 50, stdin)) == NULL){
@@ -34,7 +35,7 @@ int main(int argc, char *argv[])
 			char **topics = NULL;
 			int i, ntopic;
 			/* Send TQR request */
-			server_reply = TQR_request(ecp_server);
+			server_reply = TQR_request(socket_fd, &addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
 
@@ -53,7 +54,7 @@ int main(int argc, char *argv[])
 				free(parsed_cmd);
 				continue;
 			}
-			server_reply = TER_request(parsed_cmd[1], ecp_server);
+			server_reply = TER_request(socket_fd, parsed_cmd[1], &addr);
 
 			/* TODO Handle reply */
 

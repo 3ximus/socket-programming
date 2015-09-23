@@ -5,17 +5,22 @@
  * This contains a list of common use functions throughout the project
  */
 
+/* Common */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
+/* System */
 #include <unistd.h>
+#include <signal.h>
+
+/* Net */
 #include <netdb.h>
 #include <fcntl.h>
-#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <arpa/inet.h>
 
 /* Default port if none is specified */
@@ -24,14 +29,17 @@
 /* Buffer sizes */
 #define BUFFER_SIZE	2048
 #define LOG_BUFFER_SIZE 256
-#define SERVER_BUFFER_SIZE 128
+
+#define BIG_REPLY_BUFFER 1024
+#define SMALL_REPLY_BUFFER 128
+#define REQUEST_BUFFER_SIZE 32
 
 /* Maximum number of topics */
 #define TOPIC_NR	 99
 
 /* Default server log file */
 #define SERVER_LOG "./server.log"
-/* topics file */
+/* Topics file */
 #define TOPICS_FILE "./topics.txt"
 
 /* -------------------------------- */
