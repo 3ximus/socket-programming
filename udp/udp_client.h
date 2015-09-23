@@ -54,11 +54,12 @@ int send_udp_request(int fd, const unsigned char *request, const struct sockaddr
 
 unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 	int n;
+	socklen_t slen = sizeof(struct sockaddr_in);
 	unsigned char server_reply[BIG_REPLY_BUFFER];
 	unsigned char *returned_server_reply = (unsigned char *) malloc(BIG_REPLY_BUFFER * sizeof(unsigned char));
 
 	/* receive server reply */
-	if((n = recvfrom(fd, server_reply, BIG_REPLY_BUFFER, 0, (struct sockaddr*)addr, NULL)) == -1){
+	if((n = recvfrom(fd, server_reply, BIG_REPLY_BUFFER, 0, (struct sockaddr*)addr,&slen)) == -1){
 		perror("Error: recvfrom()\n");
 		/*free(returned_server_reply);*/
 		close(fd);
