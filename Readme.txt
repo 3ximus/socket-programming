@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Questionnaire Service:
 ============================
 
@@ -52,3 +53,5 @@ When creating a new server with start_udp_server(...) the return value (child_pi
 
 # Bugs:
 - Multiplas chamadas do list estragam o 1º argumento a nao ser que se reinicie o servidor, portanto suponho que o problema seja no servidor.
+=======
+>>>>>>> ba47db5ce33bc79119c43da9f66ffa077dec83e2
