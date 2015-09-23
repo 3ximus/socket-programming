@@ -1,1 +1,3 @@
-AWT 3 Transport|Layer Network|Layer Communications|Layer
+Transport_Layer 127.0.0.1 57001
+Network_Layer 127.0.0.1 57002
+Communications_Layer 127.0.0.1 57003

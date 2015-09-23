@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wpedantic
-EXECS =	ecp_api user 
+EXECS =	ecp_server_interface user 
 
 all: $(EXECS)
 
-ecp_api: resources.c
+ecp_server_interface: resources.c
 
 user: resources.c
 

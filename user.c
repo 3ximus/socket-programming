@@ -1,28 +1,29 @@
 #include "resources.h"
-#include "udp_client.h"
+#include "comm_protocol.h"
 
-void printHelpScreen();
-
+/*
+ * Used for user server interaction
+ * Features a shell with the commands: list , request, submit, help, exit
+ */
 int main(int argc, char *argv[])
 {
-	const struct server *ecp = optParser(argc, argv);
-
+	const struct server *ecp_server = optParser(argc, argv);
 	long int sid = atoi(argv[1]);
 
 	char cmd[50];
-	char **topics = NULL;
-	unsigned char *server_response; /* may be cause for memory leak */
-	char request_buffer[10];
 	char **parsed_cmd;
+	unsigned char *server_reply;
+
 	bzero(cmd, 50);
 
-	printf("SID: %ld\nECPname: %s\nECPport: %d\n",sid, ecp->name, ecp->port);
+	printf("SID: %ld\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
 	while(1)
 	{
 		printf("> ");
-		if (fgets(cmd, 50, stdin) == NULL){
-			printf("[ERROR] unexistent command\n");
+		/* TODO Still causes segmentation fault */
+		if ((fgets(cmd, 50, stdin)) == NULL){
+			printf("[ERROR] no command\n");
 			continue;
 		}
 		parsed_cmd = parseString(cmd, "\n");
@@ -30,24 +31,32 @@ int main(int argc, char *argv[])
 
 		if(strcmp(parsed_cmd[0],"list") == 0)
 		{	
+			char **topics = NULL;
+			int i, ntopic;
 			/* Send TQR request */
-			server_response = UDPclient("TQR",ecp);
-			topics = parseString((char *)server_response," ");
-			printTopics(topics);
-			bzero(server_response, strlen((char*)server_response)); /* clear server response */
+			server_reply = TQR_request(ecp_server);
+			topics = parseString((char *)server_reply," ");
+			ntopic = atoi(topics[1]);
+
+			/* Print topics */
+			for (i = 2; i < ntopic + 2; i++){
+				/* add padding for protocol */
+				printf("%d - %s\n", i - 2, topics[i]);
+			}
+			free(topics);
 		}
 
-		else if (strcmp(parsed_cmd[0], "request") == 0){
-			strcpy(request_buffer, "TER ");			
-
+		else if (strcmp(parsed_cmd[0], "request") == 0){	
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
 				printf("[ERROR] request with no topic\n");
+				free(parsed_cmd);
 				continue;
 			}
-			
-			strncat(request_buffer, parsed_cmd[1], 6);
-			server_response = UDPclient(request_buffer, ecp);
+			server_reply = TER_request(parsed_cmd[1], ecp_server);
+
+			/* TODO Handle reply */
+
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
@@ -78,28 +87,23 @@ int main(int argc, char *argv[])
 			free(sequence);
 		}
 
-		else if (strcmp(parsed_cmd[0], "help") == 0)
-			printHelpScreen();
-
+		else if (strcmp(parsed_cmd[0], "help") == 0){
+			printf("Questionnarie End User Application.\nReceives commands to interact with online questionnaires\n\n");
+			printf("Commands:\n\tlist\t\t\t- List topics available.\n\trequest [topic-number]\t- Request for certain topic.\n\tsubmit [answer-list]\t- Submit answer in the format \"A B C D \".\n\thelp\t\t\t- Show this help screen.\n\texit\t\t\t- Exit application.\n\n");
+		}
 		else if (strcmp(parsed_cmd[0],"exit") == 0)
 		{
 			printf("Exiting...\n");
 
-			/* free memory */
-			free(parsed_cmd);
-			free(topics);
 			exit(1);
 		}
 		else
 			printf("Wrong command \"%s\".\n", parsed_cmd[0]);
+
+		/* free at every cicle */
+		free(server_reply);
+		free(parsed_cmd);
 	}
 	return 0;
 }
 
-/*
- * Prints help Screen
- */
-void printHelpScreen(){
-	printf("Questionnarie End User Application.\nReceives commands to interact with online questionnaires\n\n");
-	printf("Commands:\n\tlist\t\t\t- List topics available.\n\trequest [topic-number]\t- Request for certain topic.\n\tsubmit [answer-list]\t- Submit answer in the format \"A B C D \".\n\thelp\t\t\t- Show this help screen.\n\texit\t\t\t- Exit application.\n\n");
-}

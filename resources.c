@@ -3,8 +3,7 @@
 /*
  * Passes options passed to exec
  */
-struct server *optParser(int argc, char *argv[])
-{	
+struct server *optParser(int argc, char *argv[]){	
 	struct server *ecp = (struct server *)malloc(sizeof(struct server));
 
 	char* inputErr = "\n\nInput format: ./user SID [-n ECPname] [-p ECPport]\n\nSID: student identity number.\nECPname: name of ECP server (opt).\nECPport: well-known port of ECP server (opt).\n\n";
@@ -15,20 +14,20 @@ struct server *optParser(int argc, char *argv[])
 			exit(1);
 
 		case 2:
-			if(gethostname(ecp->name, sizeof(ecp->name))){
-	 			printf("ERROR: gethostname()\n");
-	 			exit(1);
+			if(gethostname((char *)ecp->name, sizeof(ecp->name))){
+				printf("ERROR: gethostname()\n");
+				exit(1);
 			}
 	 		ecp->port = DEFAULT_PORT;
 	 		break;
 
 		case 4:
-			strcpy(ecp->name,argv[3]); /* CORRECT for buffer overflow */
+			strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
 	 		ecp->port = DEFAULT_PORT;
 	 		break;
 
 		case 6:
-			strcpy(ecp->name,argv[3]); /* CORRECT for buffer overflow */
+			strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
 			ecp->port = atoi(argv[5]);
 			break;
 
@@ -43,8 +42,7 @@ struct server *optParser(int argc, char *argv[])
 /* 
  * Returns ip adress associated with hostname:
  */
-int getHostIP(const char *host_name)
-{
+int getHostIP(const char *host_name){
 	struct hostent *h;
 	struct in_addr *a;
 
@@ -66,8 +64,7 @@ int getHostIP(const char *host_name)
  * - IP
  * - Port
  */
-void printHostInfo(struct sockaddr_in addr)
-{
+void printHostInfo(struct sockaddr_in addr){
 	struct hostent* h;
 
 	h = gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET);
@@ -141,41 +138,41 @@ void log_action(char* file_path, char* msg, int type){
 	strcat(buffer, msg);
 	strcat(buffer, "\n");
 	write(fd, buffer, strlen(buffer)); /* Write buffer to log. */
+	close(fd);
 }
 
 /*
  * Read a line from file
+ * Returns file content
+ * Number of lines read are placed on line_number
+ * Note: content needs to be freed
  */
-const char *readFromFile(const char *file_name)
-{
-   	char ch;
-   	FILE *fp;
-   	char *topics = (char *) malloc(100 * sizeof(char));
-   	int i;
- 
-    if((fp = fopen(file_name,"r")) == NULL){
-   	   printf("ERROR: fopen(). Failed to open file.\n");
-   	   free(topics);
-       exit(1);
-    }
+char **readFromFile(const char *file_name, int *line_number){
+	char read_buffer[100], accumulator_buffer[BUFFER_SIZE];
+	char **content;
+	int fd, bytes_read = 100;
 
-	i = 0;
-	 
-	while((ch = fgetc(fp)) != EOF){
-	    topics[i] = ch;
-	   	i++;
+	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
+	if (fd == -1){
+		/* handle error */
+		perror("[ERROR] Opening topics.txt file\n");
+		exit(-1);
 	}
+	/* while EOF isnt reached */
+	while((bytes_read = read(fd, read_buffer, 100)) > 0){
+		/* build file content on the accumulator */
+		strcat(accumulator_buffer, read_buffer);
+	}
+	content = parseString(accumulator_buffer, "\n");
 
-	if(i == 0)
-		strcpy(topics,"EOF");
-	else
-    	topics[i] = '\0';
-    
-    /* printf("file_content: %s\n",topics); */ 
+	/* count lines in file */
+	*line_number = 0;
+	while (content[*line_number] != NULL)
+		*line_number = *line_number + 1;
 
-    fclose(fp);
-
-    return topics;
+	close(fd);
+	/* return number of lines in file / topics */
+	return content;
 }
 
 /* 
@@ -185,8 +182,7 @@ input: char* msg = "Ole|Ola", char* delim = "|"
 output: char table[0] = Ole
 		char table[1] = Ola
 */
-char **parseString(char* msg , const char* delim)
-{
+char **parseString(char* msg , const char* delim){
 	int i = 0; 
 
 	char **tokens = (char **) malloc(TOPIC_NR * sizeof(char *));
@@ -199,32 +195,6 @@ char **parseString(char* msg , const char* delim)
 	}
 
 	return tokens;
-}
-
-/* Prints all topics contained in topic.txt */
-void printTopics(char **topics)
-{	
-	if((strcmp(topics[0],"AWT")) == 0){
-		int i = 2, j = 1;
-		int topic_nr = atoi(topics[1]);
-
-		for (; j <= topic_nr ; ++j)		{
-			printf("%d - ",j);
-
-			topics[i] = strtok(topics[i],"|");
-
-			while(topics[i] != NULL)
-			{
-				printf("%s ",topics[i]);
-				topics[i] = strtok(NULL,"|");
-			}
-
-			i++;
-			printf("\n");
-		} 
-	}		
-	else
-		printf("Failed answer\n");
 }
 
 /*
@@ -250,4 +220,29 @@ void freeTable(char **table, int rows){
         free(table[i]);
 
     free(table);
+}
+
+/* 
+ * Dumps raw memory in hex byte and printable format
+ */
+void dump(const unsigned char* data_buffer, const unsigned int length) {
+	unsigned char byte;
+	unsigned int i, j;
+	for (i = 0; i < length; i++) {
+		byte = data_buffer[i];
+		printf("%02x ", data_buffer[i]);	/* Display in hex byte */
+		if (((i%16) == 15) || (i == length - 1)) {
+			for (j = 0; j< 15 - (i%16); j++)
+				printf("   ");
+			printf("| ");
+			for (j = (i-(i%16)); j <= i; j++) { /* Display printable bytes from line */
+				byte = data_buffer[j];
+				if ((byte > 31) && (byte < 127)) /* Outside printable range */
+					printf("%c", byte);
+				else
+					printf(".");
+			}
+			printf("\n");
+		}
+	}
 }
