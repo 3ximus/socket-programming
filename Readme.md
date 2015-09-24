@@ -20,8 +20,8 @@ User shell commands work as follows:
 5. **exit**
 	Exits application
 
-** TO NOTE **
-All memory should be allocated on every cicle (after command is processed)
+** TO NOTE: **
+All memory should be freed on every cicle (after command is processed)
 
 
 ## ECP Server:
@@ -29,7 +29,7 @@ This serves a shell waiting for user to execute the exit command, terminating th
 
 On this implementation the *udp_server* is responsible for handling requests and serving the appropriate reply, this isnt ideal, it should be the *ecp_server_interface* handling this.
 
-** TO NOTE **
+** TO NOTE: **
 When creating a new server with start_udp_server(...) the return value (child_pid) should be caught, because it controls the child process where the server is actually running;
 
 
