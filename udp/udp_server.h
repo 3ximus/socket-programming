@@ -89,15 +89,13 @@ int start_udp_server(int port, int *socket_fd){
 		printf("\rGot Request %s from %s\n> ", parsed_request[0], inet_ntoa(addr.sin_addr));
 		fflush(stdout);
 		
-		/* LOG */
-		/* Tive que comentar, ficava preso aqui */
-		/*
-			bzero(log_msg, 60);
-			sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
-		 	gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
-		 	inet_ntoa(addr.sin_addr));
-			log_action(SERVER_LOG, log_msg, 0);
-		*/
+		/* LOG */		
+		bzero(log_msg, 60);
+		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
+	 	gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
+	 	inet_ntoa(addr.sin_addr));
+		log_action(SERVER_LOG, log_msg, 0);
+	
 
 		if(strcmp(parsed_request[0],"TQR") == 0){
 			reply_msg = AWT_reply();
