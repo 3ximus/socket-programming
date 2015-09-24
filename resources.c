@@ -142,15 +142,13 @@ void log_action(char* file_path, char* msg, int type){
 }
 
 /*
- * Read a line from file
- * Returns file content
- * Number of lines read are placed on line_number
- * Note: content needs to be freed
+ * Returns the entire file content
+ * Content must be freed
  */
 char *readFromFile(const char *file_name){
+	int fd, bytes_read = 100;
 	char read_buffer[100];
 	char *accumulator_buffer = (char *) malloc(BUFFER_SIZE*sizeof(char ));
-	int fd, bytes_read = 100;
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
 	if (fd == -1){
@@ -168,6 +166,41 @@ char *readFromFile(const char *file_name){
 
 	/* return raw file data */
 	return accumulator_buffer;
+}
+
+/*
+ * Finds a topic number in the topics.txt file and returns the IP and PORT of the respective TES Server
+ * If not found returns EOF
+ */
+char *findTopic(const int search_me){
+	int bytes_read, i = 1;
+	FILE *fd;
+	char *read_buffer = (char *)malloc(50 * sizeof(char));
+	int size = 50;
+	char **parsed_line;
+
+	fd = fopen(TOPICS_FILE, "r");
+	
+	while (i <= search_me){
+		bytes_read = getline(&read_buffer, (size_t *)&size, fd);
+	
+		if (bytes_read == -1){
+			strcpy(read_buffer, "EOF");
+			break;
+		}
+		i++;
+	}
+
+	parsed_line = parseString(read_buffer, " ");
+	bzero(read_buffer, 50);
+	/* add IP */
+	strcat(read_buffer, parsed_line[1]);
+	/* add port */
+	strcat(read_buffer, parsed_line[2]);
+
+	free(parsed_line);
+
+	return read_buffer;
 }
 
 /* 

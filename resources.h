@@ -85,13 +85,18 @@ void printHostInfo(struct sockaddr_in);
  */
 void log_action(char*, char*, int);
 
+
 /*
- * Read a line from file
- * Returns file content
- * Number of lines read are placed on line_number
- * Note: content needs to be freed
+ * Returns the entire file content
+ * Content must be freed
  */
 char *readFromFile(const char *);
+
+/*
+ * Finds a topic number in the topics.txt file and returns the IP and PORT of the respective TES Server
+ * If not found returns EOF
+ */
+char *findTopic(const int);
 
 /* 
 Returns a table with separated strings

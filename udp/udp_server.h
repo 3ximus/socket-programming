@@ -103,7 +103,8 @@ int start_udp_server(int port, int *socket_fd){
 			fflush(stdout);
 		}
 		else if (strcmp(parsed_request[0], "TER") == 0){
-			reply_msg = AWTES_reply();
+			/* parse request to get the number */
+			reply_msg = AWTES_reply(1);
 
 		}
 		else

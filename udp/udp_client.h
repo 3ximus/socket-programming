@@ -66,6 +66,7 @@ unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 		exit(1);
 	}
 
+	/* IS THIS REALLY NEEDED? */
 	memcpy(returned_server_reply, server_reply, n);
 
 	return returned_server_reply;

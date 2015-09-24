@@ -24,21 +24,21 @@
 /*
  * Used to request list of topics from ECP server
  * Sends a TQR request to server and returns server reply
- * Reply must be freed
+ * Reply must be freed on the client
  */
 unsigned char *TQR_request(int, const struct sockaddr_in*);
 
 /*
  * Used to request the TES server IP and PORT that host a questionarie passed on topic_number
  * Sends a TER request followed by topic_number to ECP server and returns server reply
- * Reply must be freed
+ * Reply must be freed on the client
  */
 unsigned char *TER_request(int, const char *topic_number, const struct sockaddr_in*);
 
-/* COMMENTS */
+/* TODO */
 unsigned char *RQT_request(int, const char *student_id, const struct sockaddr_in*);
 
-/* COMMENTS */
+/* TODO */
 unsigned char *RQS_request(int, const char *sid_answer_sequence, const struct sockaddr_in*);
 
 /* REPLIES
@@ -47,16 +47,26 @@ unsigned char *RQS_request(int, const char *sid_answer_sequence, const struct so
 
 /*
  * Used to reply to an TQR request, listing all topics in file topics.txt.
- * Sends a AWT reply in the format AWT n Tn, where n is the number of topics
- * 	and Tn is the name of each topic.
+ * Creates a AWT reply in the format AWT n Tn, where n is the number of topics
+ * 	and Tn is list with the name of each topic.
+ * Reply is allocated here, must be freed on the server
  */
 unsigned char *AWT_reply();
 
 /*
- * COMMENTS
+ * Used to reply to TER request
+ * Creates a AWTES reply in the format AWTES IPTES portTES, where IPTES is the IP of the TES server
+ *  containing the requested topic and portTES is the respective port
+ * It reads the information on the topics file, if not found the reply is "EOF"
+ * Reply is allocated here, must be freed on the server
  */
-unsigned char *AWTES_reply();
+unsigned char *AWTES_reply(const int topic_number);
 
+/*
+ * Used to send a ERR reply
+ * Creates and returns the reply
+ */
+unsigned char *ERR_reply();
 
 /* UTILS */
 unsigned char *check_reply_for_errors(unsigned char *);
@@ -74,7 +84,6 @@ unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
 	/* contact ecp server with TQR request */
 	send_udp_request(fd, (unsigned char *)request, addr);
 	server_reply = receive_udp_reply(fd, addr);
-	server_reply = check_reply_for_errors(server_reply);
 	return server_reply;
 }
 
@@ -97,7 +106,6 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 	/* contact server with built request */
 	send_udp_request(fd, (unsigned char *)request, addr);
 	server_reply = receive_udp_reply(fd, addr);
-	server_reply = check_reply_for_errors(server_reply);
 	return server_reply;
 }
 
@@ -146,14 +154,25 @@ unsigned char* AWT_reply(){
 	return server_reply;
 }
 
-unsigned char *AWTES_reply(){
+unsigned char *AWTES_reply(const int topic_number){
 	unsigned char *server_reply = (unsigned char*)malloc(SMALL_REPLY_BUFFER * sizeof(unsigned char));
-	/* TODO */
+	char *file_content;
+
+	bzero(server_reply, SMALL_REPLY_BUFFER);
+
+	strncpy((char *)server_reply, "AWT ", 4);
+
+	file_content = findTopic(topic_number);
+
+	strcat((char *)server_reply, file_content);
+	strcat((char *)server_reply, "\n");
+
 	return server_reply;
 }
 
-unsigned char *check_reply_for_errors(unsigned char *server_reply){
-	/* TODO check if reply is an ERR or an EOF and react accordingly */
+unsigned char *ERR_reply(){
+	unsigned char *server_reply = (unsigned char*)malloc(5 * sizeof(unsigned char));
+	strcpy((char *)server_reply, "ERR\n");
 	return server_reply;
 }
 
