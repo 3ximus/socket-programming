@@ -107,13 +107,23 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 unsigned char* AWT_reply(){
 	int ntopic, i;
 	char str_ntopic[2];
-	char **file_content, **parsed_line;
+	char **file_content = NULL, **parsed_line = NULL, *raw_content = NULL;
 	unsigned char *server_reply = (unsigned char*)malloc(BIG_REPLY_BUFFER * sizeof(unsigned char));
 	bzero(server_reply, BIG_REPLY_BUFFER);
 
-	strncpy((char *)server_reply, "AWP ", 4);
+	strncpy((char *)server_reply, "AWT ", 4);
+
 	/* read topics file */
-	file_content = readFromFile(TOPICS_FILE, &ntopic);
+	raw_content = readFromFile(TOPICS_FILE);
+
+	/* organize topics (1 per line) */
+	file_content = parseString(raw_content, "\n");
+
+	/* count lines in file */
+	ntopic = 0;
+	while (file_content[ntopic] != NULL)
+		ntopic++;
+
 	/* place number of topics in the reply */
 	sprintf(str_ntopic, "%d", ntopic);
 	strcat((char *)server_reply, str_ntopic);
@@ -125,7 +135,11 @@ unsigned char* AWT_reply(){
 		strcat((char *)server_reply, parsed_line[0]);
 		free(parsed_line);
 	}
+
+	/* Frees memory */
 	free(file_content);
+	free(raw_content);
+
 	strcat((char *)server_reply, "\n");
 
 	/* TODO This must make the call to sendto a socket fd */

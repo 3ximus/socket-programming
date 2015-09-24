@@ -147,10 +147,11 @@ void log_action(char* file_path, char* msg, int type){
  * Number of lines read are placed on line_number
  * Note: content needs to be freed
  */
-char **readFromFile(const char *file_name, int *line_number){
-	char read_buffer[100], accumulator_buffer[BUFFER_SIZE];
-	char **content;
+char *readFromFile(const char *file_name){
+	char read_buffer[100];
+	char *accumulator_buffer = (char *) malloc(BUFFER_SIZE*sizeof(char ));
 	int fd, bytes_read = 100;
+	//int i;
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
 	if (fd == -1){
@@ -163,16 +164,20 @@ char **readFromFile(const char *file_name, int *line_number){
 		/* build file content on the accumulator */
 		strcat(accumulator_buffer, read_buffer);
 	}
-	content = parseString(accumulator_buffer, "\n");
+
+	//strParser(content, accumulator_buffer, "\n");
+
+	// for(i = 0; i < 3; i++)
+	// 	printf("content[%d]: %s\n",i,content[i]);
 
 	/* count lines in file */
-	*line_number = 0;
-	while (content[*line_number] != NULL)
-		*line_number = *line_number + 1;
+	// *line_number = 0;
+	// while (content[*line_number] != NULL)
+	// 	*line_number = *line_number + 1;
 
 	close(fd);
 	/* return number of lines in file / topics */
-	return content;
+	return accumulator_buffer;
 }
 
 /* 

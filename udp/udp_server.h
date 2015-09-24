@@ -75,6 +75,12 @@ int start_udp_server(int port, int *socket_fd){
 		addrlen = sizeof(addr);
 		nread = recvfrom(fd, received_buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
 
+		if(nread == -1){
+			perror("Error: recvfrom()");
+			free(parsed_request);
+			exit(1);
+		}
+
 		/* parsed received buffer */
 		parsed_request = parseString(received_buffer, "\n");
 		parsed_request = parseString(received_buffer, " ");
@@ -84,17 +90,11 @@ int start_udp_server(int port, int *socket_fd){
 		fflush(stdout);
 		
 		/* LOG */
-		bzero(log_msg, 60);
-		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
-		 gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
-		 inet_ntoa(addr.sin_addr));
-		log_action(SERVER_LOG, log_msg, 0);
-
-		if(nread == -1){
-			perror("Error: recvfrom()");
-			free(parsed_request);
-			exit(1);
-		}
+		// bzero(log_msg, 60);
+		// sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
+		//  gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
+		//  inet_ntoa(addr.sin_addr));
+		// log_action(SERVER_LOG, log_msg, 0);
 
 		if(strcmp(parsed_request[0],"TQR") == 0){
 			reply_msg = AWT_reply();

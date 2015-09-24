@@ -24,7 +24,7 @@
 #include <arpa/inet.h>
 
 /* Default port if none is specified */
-#define DEFAULT_PORT 58058
+#define DEFAULT_PORT 58057
 
 /* Buffer sizes */
 #define BUFFER_SIZE	2048
@@ -91,7 +91,7 @@ void log_action(char*, char*, int);
  * Number of lines read are placed on line_number
  * Note: content needs to be freed
  */
-char **readFromFile(const char *, int *);
+char *readFromFile(const char *);
 
 /* 
 Returns a table with separated strings
@@ -101,6 +101,7 @@ output: char table[0] = Ole
 		char table[1] = Ola
 */
 char ** parseString(char*, const char*);
+void strParser(char**, char*, const char*);
 
 /*
  * Creates a Table from fixed intput
