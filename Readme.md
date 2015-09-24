@@ -5,17 +5,17 @@ Questionnaire Service:
 
 ## User:
 User shell commands work as follows:
-    1. **list**
+    * **list**
 	Sends TQR request to server and waits for a AWT reply
 	> TQR format : "TQR\n"
 	> AWT format : "AWT [topics ammount] [topics-list]\n"
 
-    2. **request**
+    + **request**
 	Sends a TER request and waits for a AWTES reply
 	> TER format : "TER [topic-number]\n"
 	> AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
 
-    3. **submit**
+    - **submit**
 
     > TODO
 
