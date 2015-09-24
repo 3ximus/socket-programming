@@ -101,7 +101,6 @@ output: char table[0] = Ole
 		char table[1] = Ola
 */
 char ** parseString(char*, const char*);
-void strParser(char**, char*, const char*);
 
 /*
  * Creates a Table from fixed intput

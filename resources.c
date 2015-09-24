@@ -151,7 +151,6 @@ char *readFromFile(const char *file_name){
 	char read_buffer[100];
 	char *accumulator_buffer = (char *) malloc(BUFFER_SIZE*sizeof(char ));
 	int fd, bytes_read = 100;
-	//int i;
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
 	if (fd == -1){
@@ -165,18 +164,9 @@ char *readFromFile(const char *file_name){
 		strcat(accumulator_buffer, read_buffer);
 	}
 
-	//strParser(content, accumulator_buffer, "\n");
-
-	// for(i = 0; i < 3; i++)
-	// 	printf("content[%d]: %s\n",i,content[i]);
-
-	/* count lines in file */
-	// *line_number = 0;
-	// while (content[*line_number] != NULL)
-	// 	*line_number = *line_number + 1;
-
 	close(fd);
-	/* return number of lines in file / topics */
+
+	/* return raw file data */
 	return accumulator_buffer;
 }
 

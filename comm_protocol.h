@@ -113,7 +113,7 @@ unsigned char* AWT_reply(){
 
 	strncpy((char *)server_reply, "AWT ", 4);
 
-	/* read topics file */
+	/* raw data from topics file */
 	raw_content = readFromFile(TOPICS_FILE);
 
 	/* organize topics (1 per line) */
