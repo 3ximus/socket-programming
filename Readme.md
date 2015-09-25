@@ -46,11 +46,10 @@ When creating a new server with start_udp_server(...) the return value (child_pi
 * * *
 
 # To Do:
-- Fazer a reply AWTES
 - Tratar das replyes ERR e EOF
 > Tanto envia-las (server) como analisa-las (user ou client?)
-- Comecar a fazer o servidor TES
-> Usar talvez o mesmo esquema implementado no ecp_server_interface <-> udp_server
+- No request tratar
+- Fazer o submit
 
 * * *
 
