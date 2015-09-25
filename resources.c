@@ -18,12 +18,12 @@ struct server *optParser(int argc, char *argv[]){
 				printf("ERROR: gethostname()\n");
 				exit(1);
 			}
-	 		ecp->port = DEFAULT_PORT;
+	 		ecp->port = DEFAULT_PORT_ECP;
 	 		break;
 
 		case 4:
 			strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
-	 		ecp->port = DEFAULT_PORT;
+	 		ecp->port = DEFAULT_PORT_ECP;
 	 		break;
 
 		case 6:

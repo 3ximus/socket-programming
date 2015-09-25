@@ -8,17 +8,17 @@
 int main(int argc, char *argv[])
 {
 	const struct server *ecp_server = optParser(argc, argv);
-	int sid = atoi(argv[1]), socket_fd;
+	int sid = atoi(argv[1]), udp_socket;
 	char cmd[50];
 	char **parsed_cmd;
 	unsigned char *server_reply;
-	struct sockaddr_in addr;
+	struct sockaddr_in udp_addr;
 
 	bzero(cmd, 50);
 
 	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
-	socket_fd = start_udp_client(&addr, ecp_server);
+	udp_socket = start_udp_client(&udp_addr, ecp_server);
 
 	while(1){
 		printf("> ");
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 			char **topics = NULL;
 			int i, ntopic;
 			/* Send TQR request */
-			server_reply = TQR_request(socket_fd, &addr);
+			server_reply = TQR_request(udp_socket, &udp_addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
 
@@ -47,16 +47,38 @@ int main(int argc, char *argv[])
 			free(topics);
 		}
 
-		else if (strcmp(parsed_cmd[0], "request") == 0){	
+		else if (strcmp(parsed_cmd[0], "request") == 0){
+			char **parsed_reply = NULL;
+			char *ip_addr;
+			int port, tcp_socket;
+
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
 				printf("[ERROR] request with no topic\n");
 				free(parsed_cmd);
 				continue;
 			}
-			server_reply = TER_request(socket_fd, parsed_cmd[1], &addr);
+			/* receives tes server (containing requested topic) information */
+			server_reply = TER_request(udp_socket, parsed_cmd[1], &udp_addr);
 
-			/* TODO Handle reply */
+			parsed_reply = parseString((char *)server_reply, "\n");
+			parsed_reply = parseString((char *)server_reply, " ");
+
+			ip_addr = parsed_reply[1];
+			port = atoi(parsed_reply[2]);
+
+			tcp_socket = start_tcp_client(ip_addr, port);
+
+			printf("\rTES server IP: %s\n> ", ip_addr);
+			printf("\rTES server Port: %d\n> ", port);
+			fflush(stdout);
+
+			/* send RQT request to TES server */
+			server_reply = RQT_request(tcp_socket, sid);
+
+			printf("SERVER REPLY: %s\n", server_reply);
+
+			free(parsed_reply);
 
 		}
 

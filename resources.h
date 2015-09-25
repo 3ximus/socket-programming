@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 /* System */
 #include <unistd.h>
@@ -24,9 +25,11 @@
 #include <arpa/inet.h>
 
 /* Default port if none is specified */
-#define DEFAULT_PORT 58057
+#define DEFAULT_PORT_ECP 58057
+#define DEFAULT_PORT_TES 59000
 
 /* Buffer sizes */
+#define BUFFER_OVER_9000 90001
 #define BUFFER_2048	2048
 #define BUFFER_32 32
 #define LOG_BUFFER_SIZE 256

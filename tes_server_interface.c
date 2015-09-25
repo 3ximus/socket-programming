@@ -1,9 +1,8 @@
-#include "udp/udp_server.h"
+#include "tcp/tcp_server.h"
 #include "resources.h"
 
-
 /*
- * This program creates a udp server on a given port an waits for incoming requests
+ * This program creates a tcp server on a given port an waits for incoming requests
  * It offers a shell so you can kill the created server
  */
 int main(int argc, char** argv)
@@ -13,7 +12,7 @@ int main(int argc, char** argv)
 	char **parsed_cmd;
 
 	if(argc == 1)
-		port = DEFAULT_PORT_ECP;
+		port = DEFAULT_PORT_TES;
 	else if(argc == 3)
 		port = atoi(argv[2]);
 	else
@@ -22,10 +21,9 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	/*UDPserver(port);*/
+	/* Create a TCP server on port */
+	server_pid = start_tcp_server(port, &socket_fd);
 
-	/* Create a UDP server on port */
-	server_pid = start_udp_server(port, &socket_fd);
 	printf("Server PID: %d\n", server_pid);
 
 	printf("Type \"exit\" to terminate server\n");
@@ -43,6 +41,7 @@ int main(int argc, char** argv)
 			/* To kill the server child process */
 			printf("Closing Server...\n");
 			close(socket_fd);
+			
 			if (kill(server_pid, SIGTERM) == -1){
 				perror("[ERROR] Killing Server Process");
 				free(parsed_cmd);

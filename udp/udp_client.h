@@ -6,7 +6,7 @@
  * Builds the sockaddr_in argument to contain the ecp server IP (IPv4) and Port
  * Always close the socket
  */
-int start_udp_client();
+int start_udp_client(struct sockaddr_in *addr, const struct server *ecp_server);
 
 /*
  * Send a request to a given ecp server defined in a sockaddr_in
@@ -58,6 +58,7 @@ unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 	unsigned char server_reply[REPLY_BUFFER_1024];
 	unsigned char *returned_server_reply = (unsigned char *) malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
 
+ 	/* TODO add timer */
 	/* receive server reply */
 	if((n = recvfrom(fd, server_reply, REPLY_BUFFER_1024, 0, (struct sockaddr*)addr,&slen)) == -1){
 		perror("Error: recvfrom()\n");

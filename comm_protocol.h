@@ -36,10 +36,10 @@ unsigned char *TQR_request(int, const struct sockaddr_in*);
 unsigned char *TER_request(int, const char *topic_number, const struct sockaddr_in*);
 
 /* TODO */
-unsigned char *RQT_request(int, const char *student_id, const struct sockaddr_in*);
+unsigned char *RQT_request(int, int);
 
 /* TODO */
-unsigned char *RQS_request(int, const char *sid_answer_sequence, const struct sockaddr_in*);
+unsigned char *RQS_request(int, int, const char *sid_answer_sequence);
 
 /* REPLIES
  * These are server side functions, only to be called on the server
@@ -61,6 +61,10 @@ unsigned char *AWT_reply();
  * Reply is allocated here, must be freed on the server
  */
 unsigned char *AWTES_reply(const int topic_number);
+
+unsigned char *AQT_reply();
+
+unsigned char *QID_reply();
 
 /*
  * Used to send a ERR reply
@@ -106,6 +110,21 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 	/* contact server with built request */
 	send_udp_request(fd, (unsigned char *)request, addr);
 	server_reply = receive_udp_reply(fd, addr);
+	return server_reply;
+}
+
+unsigned char *RQT_request(int fd, int sid){
+	unsigned char *server_reply = NULL;
+	char request[REQUEST_BUFFER_32] = "RQT ";
+	char char_sid[6];
+
+	sprintf(char_sid, "%d", sid);
+	strcat(request, char_sid);
+	strcat(request, "\n");
+
+	send_tcp_request(fd, request);
+
+	server_reply = receive_tcp_reply(fd);
 	return server_reply;
 }
 
@@ -162,7 +181,7 @@ unsigned char *AWTES_reply(const int topic_number){
 
 	strncpy((char *)server_reply, "AWTES ", 6);
 
-	/* verify valid topic */
+	/* TODO verify valid topic */
 	
 	file_content = findTopic(topic_number);
 

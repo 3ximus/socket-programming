@@ -49,6 +49,9 @@ int start_udp_server(int port, int *socket_fd){
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); /* Accept datagrams on any Internet interface on the system */
 	addr.sin_port = htons(port);
 
+	if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
+			perror("[ERROR] Couldnt catch SIGTERM");
+
 	/* 
 	When a process wants to receive new incoming packets or connections,
     it should bind a socket to a local interface address. 
@@ -63,14 +66,15 @@ int start_udp_server(int port, int *socket_fd){
 	sprintf(log_msg, "Started server on port %d", port);
 	log_action(SERVER_LOG, log_msg, 2);
 
+	printf("\rECP server listening on port %d\n> ", port);
+	fflush(stdout);
+	
+
 	child_pid = fork();
 
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	while(child_pid == 0){
 
-		if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
-			perror("[ERROR] Couldnt catch SIGTERM");
-		
 		/* Receive request message */
 		addrlen = sizeof(addr);
 		nread = recvfrom(fd, received_buffer,BUFFER_2048,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
