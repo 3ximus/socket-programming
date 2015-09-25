@@ -89,7 +89,7 @@ unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
 
 unsigned char *TER_request(int fd, const char *topic_number, const struct sockaddr_in* addr){
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_SIZE] = "TER ";
+	char request[REQUEST_BUFFER_32] = "TER ";
 	char *endptr;
 
 	/* check if topic_number is in fact a number and is between 0 and TOPIC_NR (99) */
@@ -116,8 +116,8 @@ unsigned char* AWT_reply(){
 	int ntopic, i;
 	char str_ntopic[2];
 	char **file_content = NULL, **parsed_line = NULL, *raw_content = NULL;
-	unsigned char *server_reply = (unsigned char*)malloc(BIG_REPLY_BUFFER * sizeof(unsigned char));
-	bzero(server_reply, BIG_REPLY_BUFFER);
+	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
+	bzero(server_reply, REPLY_BUFFER_1024);
 
 	strncpy((char *)server_reply, "AWT ", 4);
 
@@ -155,18 +155,21 @@ unsigned char* AWT_reply(){
 }
 
 unsigned char *AWTES_reply(const int topic_number){
-	unsigned char *server_reply = (unsigned char*)malloc(SMALL_REPLY_BUFFER * sizeof(unsigned char));
+	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_128* sizeof(unsigned char));
 	char *file_content;
 
-	bzero(server_reply, SMALL_REPLY_BUFFER);
+	bzero(server_reply, REPLY_BUFFER_128);
 
-	strncpy((char *)server_reply, "AWT ", 4);
+	strncpy((char *)server_reply, "AWTES ", 6);
 
+	/* verify valid topic */
+	
 	file_content = findTopic(topic_number);
 
 	strcat((char *)server_reply, file_content);
 	strcat((char *)server_reply, "\n");
 
+	free(file_content);
 	return server_reply;
 }
 

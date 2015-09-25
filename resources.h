@@ -27,12 +27,13 @@
 #define DEFAULT_PORT 58057
 
 /* Buffer sizes */
-#define BUFFER_SIZE	2048
+#define BUFFER_2048	2048
+#define BUFFER_32 32
 #define LOG_BUFFER_SIZE 256
 
-#define BIG_REPLY_BUFFER 1024
-#define SMALL_REPLY_BUFFER 128
-#define REQUEST_BUFFER_SIZE 32
+#define REPLY_BUFFER_1024 1024
+#define REPLY_BUFFER_128 128
+#define REQUEST_BUFFER_32 32
 
 /* Maximum number of topics */
 #define TOPIC_NR	 99

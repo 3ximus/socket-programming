@@ -148,7 +148,7 @@ void log_action(char* file_path, char* msg, int type){
 char *readFromFile(const char *file_name){
 	int fd, bytes_read = 100;
 	char read_buffer[100];
-	char *accumulator_buffer = (char *) malloc(BUFFER_SIZE*sizeof(char ));
+	char *accumulator_buffer = (char *) malloc(BUFFER_2048 * sizeof(char ));
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
 	if (fd == -1){
@@ -173,34 +173,38 @@ char *readFromFile(const char *file_name){
  * If not found returns EOF
  */
 char *findTopic(const int search_me){
-	int bytes_read, i = 1;
+	size_t len = 0;
+	ssize_t bytes_read;
+	int i = 1;
 	FILE *fd;
-	char *read_buffer = (char *)malloc(50 * sizeof(char));
-	int size = 50;
-	char **parsed_line;
+	char *read_buffer = NULL, **parsed_line, *content = (char *)malloc(BUFFER_32 * sizeof(char));
+	bzero(content, BUFFER_32);
 
 	fd = fopen(TOPICS_FILE, "r");
 	
 	while (i <= search_me){
-		bytes_read = getline(&read_buffer, (size_t *)&size, fd);
-	
+		bytes_read = getline(&read_buffer, &len, fd);
 		if (bytes_read == -1){
 			strcpy(read_buffer, "EOF");
 			break;
 		}
 		i++;
 	}
-
 	parsed_line = parseString(read_buffer, " ");
-	bzero(read_buffer, 50);
 	/* add IP */
-	strcat(read_buffer, parsed_line[1]);
+	strcpy(content, parsed_line[1]);
+	strcat(content, " ");
 	/* add port */
-	strcat(read_buffer, parsed_line[2]);
+	strcat(content, parsed_line[2]);
+
+	if (content[strlen(content) - 1] == '\n')
+		content[strlen(content) -1] = '\0';
 
 	free(parsed_line);
+	free(read_buffer);
+	fclose(fd);
 
-	return read_buffer;
+	return content;
 }
 
 /* 

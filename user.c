@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 			/* Print topics */
 			for (i = 2; i < ntopic + 2; i++){
 				/* add padding for protocol */
-				printf("%d - %s\n", i - 2, topics[i]);
+				printf("%d - %s\n", i - 1, topics[i]);
 			}
 			free(topics);
 		}

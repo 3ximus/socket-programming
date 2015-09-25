@@ -28,7 +28,7 @@ void sigterm_handler(int x){
 
 int start_udp_server(int port, int *socket_fd){
 	int fd, addrlen, nread, child_pid = 0;
-	char received_buffer[REQUEST_BUFFER_SIZE];
+	char received_buffer[REQUEST_BUFFER_32];
 	char log_msg[60];
 	char **parsed_request; /* must be freed */
 	unsigned char *reply_msg = NULL; /* must be freed */
@@ -73,7 +73,7 @@ int start_udp_server(int port, int *socket_fd){
 		
 		/* Receive request message */
 		addrlen = sizeof(addr);
-		nread = recvfrom(fd, received_buffer,BUFFER_SIZE,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
+		nread = recvfrom(fd, received_buffer,BUFFER_2048,0,(struct sockaddr*) &addr,(unsigned int *) &addrlen);
 
 		if(nread == -1){
 			perror("Error: recvfrom()");
@@ -97,14 +97,23 @@ int start_udp_server(int port, int *socket_fd){
 		log_action(SERVER_LOG, log_msg, 0);
 	
 
-		if(strcmp(parsed_request[0],"TQR") == 0){
+		if(strcmp(parsed_request[0],"TQR") == 0){		
 			reply_msg = AWT_reply();
-			printf("\rSending AWT reply\n> ");
+			
+			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
+			
+			printf("\rSending AWT reply \"%s\"\n> ", reply_msg);
 			fflush(stdout);
 		}
 		else if (strcmp(parsed_request[0], "TER") == 0){
-			/* parse request to get the number */
-			reply_msg = AWTES_reply(1);
+			int topic_nr = atoi(parsed_request[1]);
+
+			reply_msg = AWTES_reply(topic_nr);
+
+			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
+
+			printf("\rSending AWTES reply \"%s\"\n> ", reply_msg);
+			fflush(stdout);
 
 		}
 		else
