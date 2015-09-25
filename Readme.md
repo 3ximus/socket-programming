@@ -48,7 +48,7 @@ When creating a new server with start_udp_server(...) the return value (child_pi
 # To Do:
 - Tratar das replyes ERR e EOF
 > Tanto envia-las (server) como analisa-las (user ou client?)
-- No request tratar
+- Acabar o request
 - Fazer o submit
 
 * * *
