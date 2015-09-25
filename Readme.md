@@ -4,28 +4,25 @@ Questionnaire Service:
 # Structure:
 
 ## User:
-User shell commands work as follows:
 
-    1. list
-	Sends TQR request to server and waits for a AWT reply
-	> TQR format : "TQR\n"
-	> AWT format : "AWT [topics ammount] [topics-list]\n"
+1. list
+    - Sends TQR request to server and waits for a AWT reply
+    > TQR format : "TQR\n"
+    > AWT format : "AWT [topics ammount] [topics-list]\n"
 
-    2. request
-	Sends a TER request and waits for a AWTES reply
-	> TER format : "TER [topic-number]\n"
-	> AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
+2. request
+    - Sends a TER request and waits for a AWTES reply
+    > TER format : "TER [topic-number]\n"
+    > AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
 
-    3. submit
+3. submit
+> TODO
 
-    > TODO
+4. help
+    - Shows help screen, listing commands and their effects
 
-    4. help
-
-        Shows help screen, listing commands and their effects
-
-    5. exit
-	Exits application
+5. exit
+    - Exits application
 
 ** TO NOTE: **
 All memory should be freed on every cicle (after command is processed)
