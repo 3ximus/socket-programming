@@ -29,11 +29,12 @@
 #define DEFAULT_PORT_TES 59000
 
 /* Buffer sizes */
-#define BUFFER_OVER_9000 90001
+
 #define BUFFER_2048	2048
 #define BUFFER_32 32
 #define LOG_BUFFER_SIZE 256
 
+#define REPLY_BUFFER_OVER_9000 4096
 #define REPLY_BUFFER_1024 1024
 #define REPLY_BUFFER_128 128
 #define REQUEST_BUFFER_32 32
@@ -42,9 +43,11 @@
 #define TOPIC_NR	 99
 
 /* Default server log file */
-#define SERVER_LOG "./server.log"
+#define UDP_SERVER_LOG "./ecp_server.log"
+#define TCP_SERVER_LOG "./tes_server.log"
 /* Topics file */
 #define TOPICS_FILE "./topics.txt"
+#define TES_CONFIG_FILE "./tes_server.config"
 
 /* -------------------------------- */
 
@@ -101,6 +104,16 @@ char *readFromFile(const char *);
  * If not found returns EOF
  */
 char *findTopic(const int);
+
+/*
+ * Load tes server consiguration file
+ */
+int readServerConfig();
+
+/*
+ * Write to tes server config file
+ */
+void writeServerConfig(int);
 
 /* 
 Returns a table with separated strings

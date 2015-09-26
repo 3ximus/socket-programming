@@ -1,4 +1,5 @@
 user
 ecp_server_interface
 tes_server_interface
-server.log
+ecp_server.log
+tes_server.log

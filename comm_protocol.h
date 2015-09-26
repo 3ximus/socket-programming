@@ -125,6 +125,9 @@ unsigned char *RQT_request(int fd, int sid){
 	send_tcp_request(fd, request);
 
 	server_reply = receive_tcp_reply(fd);
+
+	printf("THE REPLY IS: %s\n", server_reply);
+
 	return server_reply;
 }
 
@@ -191,6 +194,22 @@ unsigned char *AWTES_reply(const int topic_number){
 	free(file_content);
 	return server_reply;
 }
+
+unsigned char *AQT_reply(int qid){
+	char qid_char[5];
+	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
+	bzero(server_reply, REPLY_BUFFER_OVER_9000);
+
+	strncpy((char* )server_reply, "AQT ", 4);
+	sprintf(qid_char, "%d", qid);
+	strcat((char *)server_reply, qid_char);
+
+	/* TODO rest of reply */
+	
+	strcat((char *)server_reply, "\n");
+	return server_reply;
+}
+
 
 unsigned char *ERR_reply(){
 	unsigned char *server_reply = (unsigned char*)malloc(5 * sizeof(unsigned char));

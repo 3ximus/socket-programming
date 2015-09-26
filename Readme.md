@@ -4,28 +4,25 @@ Questionnaire Service:
 # Structure:
 
 ## User:
-User shell commands work as follows:
 
-    1. list
-	Sends TQR request to server and waits for a AWT reply
-	> TQR format : "TQR\n"
-	> AWT format : "AWT [topics ammount] [topics-list]\n"
+1. list
+    - Sends TQR request to server and waits for a AWT reply
+    > TQR format : "TQR\n"
+    > AWT format : "AWT [topics ammount] [topics-list]\n"
 
-    2. request
-	Sends a TER request and waits for a AWTES reply
-	> TER format : "TER [topic-number]\n"
-	> AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
+2. request
+    - Sends a TER request and waits for a AWTES reply
+    > TER format : "TER [topic-number]\n"
+    > AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
 
-    3. submit
+3. submit
+> TODO
 
-    > TODO
+4. help
+    - Shows help screen, listing commands and their effects
 
-    4. help
-
-        Shows help screen, listing commands and their effects
-
-    5. exit
-	Exits application
+5. exit
+    - Exits application
 
 ** TO NOTE: **
 All memory should be freed on every cicle (after command is processed)
@@ -49,13 +46,13 @@ When creating a new server with start_udp_server(...) the return value (child_pi
 * * *
 
 # To Do:
-- Fazer a reply AWTES
 - Tratar das replyes ERR e EOF
 > Tanto envia-las (server) como analisa-las (user ou client?)
-- Comecar a fazer o servidor TES
-> Usar talvez o mesmo esquema implementado no ecp_server_interface <-> udp_server
+- Acabar o request
+- Fazer o submit
 
 * * *
 
 # Bugs:
-- Multiplas chamadas do list estragam o 1º argumento a nao ser que se reinicie o servidor, portanto suponho que o problema seja no servidor.
+
+- Será que a maneira como o server esta feito (loop do write dentro do loop do read) nao criará problemas quando o read nao conseguir ler tudo de uma vez? Quando isto acontecer a request nao vai ser analisada (parsed) na totalidade... Talvez nao haja problema pois as request sao pequenas... Mas se houver bugs isto poderá ser uma razao.

@@ -207,6 +207,21 @@ char *findTopic(const int search_me){
 	return content;
 }
 
+int readServerConfig(){
+	FILE *fd;
+	int qid;
+	fd = fopen(TES_CONFIG_FILE, "r");
+
+	fscanf(fd, "qid = %d", &qid);
+	return qid;
+}
+
+void writeServerConfig(int qid){
+	FILE *fd;
+	fd = fopen(TES_CONFIG_FILE, "w");
+	fprintf(fd, "qid = %d", qid);
+}
+
 /* 
 Devolve um tabela de strings em que cada entrada foi separada por simbolo de separacao.
 input: char* msg = "Ole|Ola", char* delim = "|"

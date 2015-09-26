@@ -76,8 +76,6 @@ int main(int argc, char *argv[])
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
 
-			printf("SERVER REPLY: %s\n", server_reply);
-
 			free(parsed_reply);
 
 		}

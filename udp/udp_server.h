@@ -64,7 +64,7 @@ int start_udp_server(int port, int *socket_fd){
 	/* LOG */
 	bzero(log_msg, 60);
 	sprintf(log_msg, "Started server on port %d", port);
-	log_action(SERVER_LOG, log_msg, 2);
+	log_action(UDP_SERVER_LOG, log_msg, 2);
 
 	printf("\rECP server listening on port %d\n> ", port);
 	fflush(stdout);
@@ -90,20 +90,21 @@ int start_udp_server(int port, int *socket_fd){
 		parsed_request = parseString(received_buffer, " ");
 		
 		/* Print request */
-		printf("\rGot Request %s from %s\n> ", parsed_request[0], inet_ntoa(addr.sin_addr));
+		printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 		fflush(stdout);
 		
 		/* LOG */		
 		bzero(log_msg, 60);
-		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\"", parsed_request[0],
+		sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\":%d", parsed_request[0],
 	 	gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
-	 	inet_ntoa(addr.sin_addr));
-		log_action(SERVER_LOG, log_msg, 0);
+	 	inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+		log_action(UDP_SERVER_LOG, log_msg, 0);
 	
 
 		if(strcmp(parsed_request[0],"TQR") == 0){		
 			reply_msg = AWT_reply();
 			
+			/* remove \n at the end */
 			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
 			
 			printf("\rSending AWT reply \"%s\"\n> ", reply_msg);
@@ -114,6 +115,7 @@ int start_udp_server(int port, int *socket_fd){
 
 			reply_msg = AWTES_reply(topic_nr);
 
+			/* remove \n at the end */
 			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
 
 			printf("\rSending AWTES reply \"%s\"\n> ", reply_msg);
@@ -121,8 +123,7 @@ int start_udp_server(int port, int *socket_fd){
 
 		}
 		else
-			/* Reply with an error response */
-			strcpy((char *)reply_msg,"ERR\n");
+			reply_msg = ERR_reply();
 
 		/* Send reply message */
 		if((sendto(fd, reply_msg, strlen((char *)reply_msg),0,(struct sockaddr*) &addr, addrlen)) == -1){

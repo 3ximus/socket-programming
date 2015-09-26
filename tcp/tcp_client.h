@@ -65,33 +65,40 @@ int send_tcp_request(int fd, const char *request){
 
 		nleft -= nwritten;
 		request += nwritten;
-	}
 
+	}
 	return nwritten;
 }
 
 unsigned char *receive_tcp_reply(int fd){
 
-	int nleft = BUFFER_OVER_9000, nread;
-	unsigned char *reply  = (unsigned char *)malloc(BUFFER_OVER_9000 * sizeof(unsigned char));
+	int nleft = REPLY_BUFFER_1024, nread;
+	unsigned char *reply_buffer[REPLY_BUFFER_1024], *reply_ptr;
+	unsigned char *reply  = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
+
+	/* point to the beginning reply */
+	reply_ptr = reply;
 
 	while(nleft > 0)
 	{
-		if((nread = read(fd,reply,nleft)) == -1)
+		if((nread = read(fd, reply_buffer, nleft)) == -1)
 		{
 			perror("Error: read()\n");
 			exit(1);
 		}
-		else if(nread == 0)
+		
+		nleft -= nread;
+		/* copy the buffer to the reply reply */
+		memcpy(reply_ptr, reply_buffer, REPLY_BUFFER_1024);
+		/* move the "writing head" forward */
+		reply_ptr += nread;
+	
+		if(nread == 0)
 		{
 			printf("Closed by peer\n");
-			exit(1);
+			break;
 		}
-
-		nleft -= nread;
-		reply += nread;
 	}
-
 	close(fd);
 	return reply;
 }
