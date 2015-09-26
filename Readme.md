@@ -52,11 +52,5 @@ When creating a new server with start_udp_server(...) the return value (child_pi
 - Fazer o submit
 
 * * *
-
-<<<<<<< HEAD
 # Bugs:
-
 - Será que a maneira como o server esta feito (loop do write dentro do loop do read) nao criará problemas quando o read nao conseguir ler tudo de uma vez? Quando isto acontecer a request nao vai ser analisada (parsed) na totalidade... Talvez nao haja problema pois as request sao pequenas... Mas se houver bugs isto poderá ser uma razao.
-=======
-# Bugs:
->>>>>>> 2466ef94a99b2f40f009fd998521790e9ed708e1
