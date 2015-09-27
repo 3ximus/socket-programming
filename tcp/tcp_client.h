@@ -31,7 +31,7 @@ int start_tcp_client(const char *ip_addr, int port)
 	/* Atribuicao da socket TCP */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1)
 	{
-		printf("Error: socket()\n");
+		perror("Error: socket()\n");
 		exit(1);
 	}
 
@@ -44,8 +44,7 @@ int start_tcp_client(const char *ip_addr, int port)
 	/* Initiate a connection on a socket */
 	if((n = connect(fd, (struct sockaddr*)&addr, sizeof(addr)))== -1)
 	{
-		printf("Error: connect().\nThere is no TCP server listening on that port.\n");
-		exit(1);
+		return -1;
 	}
 	return fd;
 }
@@ -72,30 +71,29 @@ int send_tcp_request(int fd, const char *request){
 
 unsigned char *receive_tcp_reply(int fd){
 
-	int nleft = REPLY_BUFFER_1024, nread;
-	unsigned char *reply_buffer[REPLY_BUFFER_1024], *reply_ptr;
+	int reply_buff_size = REPLY_BUFFER_OVER_9000, nread;
+	unsigned char *reply_buffer[REPLY_BUFFER_OVER_9000], *reply_ptr;
 	unsigned char *reply  = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
 
 	/* point to the beginning reply */
 	reply_ptr = reply;
 
-	while(nleft > 0)
+	while(reply_buff_size > 0)
 	{
-		if((nread = read(fd, reply_buffer, nleft)) == -1)
+		if((nread = read(fd, reply_buffer, reply_buff_size)) == -1)
 		{
 			perror("Error: read()\n");
 			exit(1);
 		}
-		
-		nleft -= nread;
+
 		/* copy the buffer to the reply reply */
-		memcpy(reply_ptr, reply_buffer, REPLY_BUFFER_1024);
+		memcpy(reply_ptr, reply_buffer, REPLY_BUFFER_OVER_9000);
 		/* move the "writing head" forward */
 		reply_ptr += nread;
 	
-		if(nread == 0)
+		/* if we read less bytes than reply_buff_size */
+		if(nread < reply_buff_size)
 		{
-			printf("Closed by peer\n");
 			break;
 		}
 	}

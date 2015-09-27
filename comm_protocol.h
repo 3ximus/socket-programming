@@ -123,10 +123,8 @@ unsigned char *RQT_request(int fd, int sid){
 	strcat(request, "\n");
 
 	send_tcp_request(fd, request);
-
+	
 	server_reply = receive_tcp_reply(fd);
-
-	printf("THE REPLY IS: %s\n", server_reply);
 
 	return server_reply;
 }
@@ -209,7 +207,6 @@ unsigned char *AQT_reply(int qid){
 	strcat((char *)server_reply, "\n");
 	return server_reply;
 }
-
 
 unsigned char *ERR_reply(){
 	unsigned char *server_reply = (unsigned char*)malloc(5 * sizeof(unsigned char));

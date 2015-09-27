@@ -20,6 +20,7 @@ int start_tcp_server(int port, int *socket_fd)
 	int fd, newfd, addrlen, n, nw, child_pid = 0;
 	char received_buffer[BUFFER_32];
 	char log_msg[60];
+	unsigned char *reply_ptr;
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;
 	char **parsed_request; /* must be freed */
@@ -28,7 +29,7 @@ int start_tcp_server(int port, int *socket_fd)
 	/* TCP socket atribution create an endpoint for TCP communication. */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1)
 	{
-		printf("Error: socket()\n");
+		perror("Error: socket()\n");
 		exit(1);
 	}
 
@@ -49,7 +50,7 @@ int start_tcp_server(int port, int *socket_fd)
     it should bind a socket to a local interface address. 
     */
 	if(bind(fd,(struct sockaddr*) &addr, sizeof(addr)) == -1){
-		printf("Error: bind()\nTheres already a TCP server in the specified port.\n");
+		perror("Error: bind()\nTheres already a TCP server in the specified port.\n");
 		exit(1);
 	}
 
@@ -65,7 +66,7 @@ int start_tcp_server(int port, int *socket_fd)
 	/* listen for connections on a socket */
 	if(listen(fd,5) == -1)
 	{
-		printf("Error: listen()\n");
+		perror("Error: listen()\n");
 		exit(1);
 	}
 
@@ -89,7 +90,7 @@ int start_tcp_server(int port, int *socket_fd)
 			{
 				if(n == -1)
 				{
-					printf("Error: read()\n");
+					perror("Error: read()\n");
 					exit(1);
 				}
 				
@@ -98,7 +99,8 @@ int start_tcp_server(int port, int *socket_fd)
 				parsed_request = parseString(received_buffer, " ");
 
 				/* Print request */
-				printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+				printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr),
+				 ntohs(addr.sin_port));
 				fflush(stdout);
 
 				/* LOG */		
@@ -115,27 +117,29 @@ int start_tcp_server(int port, int *socket_fd)
 					/* remove \n at the end */
 					reply_msg[strlen((char *)reply_msg) - 1] = '\0';
 
-					printf("\rSending AWT reply \"%s\"\n> ", reply_msg);
+					printf("\rSending AQT reply \"%s\"\n> ", reply_msg);
 					fflush(stdout);
 				}
 				else 
 					reply_msg = ERR_reply();
 
+				/* point to begining of reply */
+				reply_ptr = reply_msg;
 				while(n > 0)
 				{	
-					if((nw = write(newfd, reply_msg, n)) <= 0)
+					if((nw = write(newfd, reply_ptr, n)) <= 0)
 					{
-						printf("Error: write()\n");
+						perror("Error: write()\n");
 						exit(1);
 					}
 					n -= nw;
-					reply_msg += nw;
+					reply_ptr += nw;
 				}
 
 				free(reply_msg);
 				free(parsed_request);
-				close(newfd);
 			}
+			close(newfd);
 		}	
 	}
 	/* This is left in here just in case, because socket is closed on the ecp_server_interface */
