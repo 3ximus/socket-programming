@@ -51,6 +51,8 @@ Use all xx_reply() functions to build the server replies.
 > Implica fazer os timestamps nos pedidos e atribuicao dos qid
 - Fazer o submit
 - Fazer timeout nas ligaceos UDP
+- **[LOW]** corrigir parseOpt
+- **[LOW]** corrigir parseString
 
 * * *
 # Bugs:

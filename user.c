@@ -21,10 +21,9 @@ int main(int argc, char *argv[])
 
 	while(1){
 		printf("> ");
-		
 
 		/* TODO Still causes segmentation fault */
-		if ((getline(&cmd, &line_size, stdin)) == -1){
+		if (getline(&cmd, &line_size, stdin) == -1){
 			perror("[ERROR] no command\n");
 			continue;
 		}
@@ -50,7 +49,7 @@ int main(int argc, char *argv[])
 			}
 			free(topics);
 		}
-
+		
 		else if (strcmp(parsed_cmd[0], "request") == 0 && parsed_cmd[2] == NULL){
 			char **parsed_reply = NULL;
 			char *ip_addr;
@@ -113,7 +112,13 @@ int main(int argc, char *argv[])
 						strcat(sequence, parsed_cmd[i]);
 					}
 				}
-			/* TODO: Send string sequence */
+
+			if ((tcp_socket = start_tcp_client(ip_addr, port)) == -1){
+				/* if the tes server isn't online */
+				perror("There is no TES server on that port.\n");
+				continue;
+			}
+			server_reply = RQT_request(fd, sid, 1001, )
 			free(sequence);
 		}
 

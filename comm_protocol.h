@@ -35,11 +35,19 @@ unsigned char *TQR_request(int, const struct sockaddr_in*);
  */
 unsigned char *TER_request(int, const char *topic_number, const struct sockaddr_in*);
 
-/* TODO */
+/* 
+ * Used to request the questionnarie from the TES server
+ * Sends the sid of the user
+ * Reply must be freed on client
+ */
 unsigned char *RQT_request(int, int);
 
-/* TODO */
-unsigned char *RQS_request(int, int, const char *sid_answer_sequence);
+/*
+ * Used to submit questionnaries answers to the TES server
+ * Sends the user sid, the questionnarie qid and the answers
+ * Reply must be freed on the client
+ */
+unsigned char *RQS_request(int, int, int, char *);
 
 /* REPLIES
  * These are server side functions, only to be called on the server
@@ -62,18 +70,26 @@ unsigned char *AWT_reply();
  */
 unsigned char *AWTES_reply(const int topic_number);
 
+/*
+ * Used to reply to RQT request
+ * Sends the pdf of the questionnarie to the user, together with its qid and a
+ *  timestamp of the request
+ * Reply is allocated here, must be freed on the server
+ */
 unsigned char *AQT_reply();
 
-unsigned char *QID_reply();
+/*
+ * Used to reply to a RQS request
+ * Sends the questionnarie qid with the the score obtained
+ * Reply is allocated here, must be freed on the server
+ */
+unsigned char *AQS_reply();
 
 /*
  * Used to send a ERR reply
  * Creates and returns the reply
  */
 unsigned char *ERR_reply();
-
-/* UTILS */
-unsigned char *check_reply_for_errors(unsigned char *);
 
 /* ------------------------------------------- */
 
@@ -126,6 +142,26 @@ unsigned char *RQT_request(int fd, int sid){
 	
 	server_reply = receive_tcp_reply(fd);
 
+	return server_reply;
+}
+
+unsigned char *RQS_request(int fd, int sid, int qid, char *answers){
+	unsigned char *server_reply = NULL;
+	char *request[REQUEST_BUFFER_32] = "RQS ";
+	char char_sid[6], char_qid[6];
+
+	sprintf(char_sid. "%d", sid);
+	sprintf(char_qid. "%d", qid);
+
+	strcat(request, char_sid);
+	strcat(request, " ");
+	strcat(request, char_qid);
+	strcat(request, " ");
+	strcat(request, answers);
+	strcat(request, "\n");
+
+	send_tcp_request(fd, request);
+	server_reply = receive_tcp_reply(fd);
 	return server_reply;
 }
 

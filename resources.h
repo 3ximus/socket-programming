@@ -57,6 +57,12 @@ struct server{
 	unsigned int port;
 };
 
+struct tes_server{
+	char *ip_addr;
+	int port;
+	int qid;
+};
+
 /* -------------------------------- */
 
 /*

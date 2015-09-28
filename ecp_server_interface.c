@@ -22,8 +22,6 @@ int main(int argc, char** argv)
 		exit(1);
 	}
 
-	/*UDPserver(port);*/
-
 	/* Create a UDP server on port */
 	server_pid = start_udp_server(port, &socket_fd);
 	printf("Server PID: %d\n", server_pid);
