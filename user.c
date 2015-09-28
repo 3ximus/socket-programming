@@ -9,12 +9,11 @@ int main(int argc, char *argv[])
 {
 	const struct server *ecp_server = optParser(argc, argv);
 	int sid = atoi(argv[1]), udp_socket;
-	char cmd[50];
+	size_t line_size = 0;
+	char* cmd = NULL;
 	char **parsed_cmd;
 	unsigned char *server_reply = NULL;
 	struct sockaddr_in udp_addr;
-
-	bzero(cmd, 50);
 
 	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
@@ -22,11 +21,14 @@ int main(int argc, char *argv[])
 
 	while(1){
 		printf("> ");
+		
+
 		/* TODO Still causes segmentation fault */
-		if ((fgets(cmd, 50, stdin)) == NULL){
-			printf("[ERROR] no command\n");
+		if ((getline(&cmd, &line_size, stdin)) == -1){
+			perror("[ERROR] no command\n");
 			continue;
 		}
+		
 		parsed_cmd = parseString(cmd, "\n");
 		parsed_cmd = parseString(parsed_cmd[0], " ");
 
@@ -35,6 +37,8 @@ int main(int argc, char *argv[])
 			char **topics = NULL;
 			int i, ntopic;
 			/* Send TQR request */
+
+		 
 			server_reply = TQR_request(udp_socket, &udp_addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
@@ -79,7 +83,6 @@ int main(int argc, char *argv[])
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
 
-
 			printf("Server reply: %s\n", server_reply);
 			/* save the pdf document */
 
@@ -90,7 +93,6 @@ int main(int argc, char *argv[])
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
 			int i;
 			char *sequence = (char *)malloc(sizeof(char) * 5); /* Array of 5 char for sequence */
-			bzero(sequence, 5);
 
 			/* Only reads 5 char separated with " ", ignore the rest */
 			for (i = 1; i < 6; i++)
@@ -122,7 +124,7 @@ int main(int argc, char *argv[])
 		else if (strcmp(parsed_cmd[0],"exit") == 0 && parsed_cmd[1] == NULL)
 		{
 			printf("Exiting...\n");
-
+			free(cmd);
 			exit(1);
 		}
 		else{

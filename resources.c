@@ -93,7 +93,8 @@ void log_action(char* file_path, char* msg, int type){
 	time_t now;
 	struct tm *time_struct;
 	int fd;
-	bzero(buffer, LOG_BUFFER_SIZE);
+	
+	memset((void *)buffer,'\0', LOG_BUFFER_SIZE);
 
 	/* Try to open open or create log file */
 	fd = open(file_path, O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
@@ -178,7 +179,8 @@ char *findTopic(const int search_me){
 	int i = 1;
 	FILE *fd;
 	char *read_buffer = NULL, **parsed_line, *content = (char *)malloc(BUFFER_32 * sizeof(char));
-	bzero(content, BUFFER_32);
+	
+	memset((void *)content,'\0', BUFFER_32);
 
 	fd = fopen(TOPICS_FILE, "r");
 	
@@ -244,30 +246,6 @@ char **parseString(char* msg , const char* delim){
 	return tokens;
 }
 
-/*
- * Creates a Table from fixed intput
- */
-char **createTable(int rows, int row_length) {	
-   int i;
-   char **table = (char **) malloc(rows * sizeof(char *));
-
-   for(i = 0; i < rows; i++){
-       table[i] = (char *) malloc(row_length * sizeof(char));
-       bzero(table[i], rows);
-   }
-   return table;
-}
-
-/*
- * Free table memory
- */
-void freeTable(char **table, int rows){	
-	int i;
-    for(i = 0; i < rows; i++)
-        free(table[i]);
-
-    free(table);
-}
 
 /* 
  * Dumps raw memory in hex byte and printable format

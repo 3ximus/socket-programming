@@ -60,6 +60,7 @@ unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 
  	/* TODO add timer */
 	/* receive server reply */
+
 	if((n = recvfrom(fd, server_reply, REPLY_BUFFER_1024, 0, (struct sockaddr*)addr,&slen)) == -1){
 		perror("Error: recvfrom()\n");
 		/*free(returned_server_reply);*/

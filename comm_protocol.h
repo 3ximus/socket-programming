@@ -137,7 +137,8 @@ unsigned char* AWT_reply(){
 	char str_ntopic[2];
 	char **file_content = NULL, **parsed_line = NULL, *raw_content = NULL;
 	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
-	bzero(server_reply, REPLY_BUFFER_1024);
+
+	memset((void *)server_reply,'\0', REPLY_BUFFER_1024);
 
 	strncpy((char *)server_reply, "AWT ", 4);
 
@@ -178,7 +179,7 @@ unsigned char *AWTES_reply(const int topic_number){
 	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_128* sizeof(unsigned char));
 	char *file_content;
 
-	bzero(server_reply, REPLY_BUFFER_128);
+	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
 
 	strncpy((char *)server_reply, "AWTES ", 6);
 
@@ -196,7 +197,8 @@ unsigned char *AWTES_reply(const int topic_number){
 unsigned char *AQT_reply(int qid){
 	char qid_char[5];
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
-	bzero(server_reply, REPLY_BUFFER_OVER_9000);
+	
+	memset((void *)server_reply,'\0', REPLY_BUFFER_OVER_9000);
 
 	strncpy((char* )server_reply, "AQT ", 4);
 	sprintf(qid_char, "%d", qid);
