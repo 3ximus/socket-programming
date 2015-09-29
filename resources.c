@@ -92,6 +92,7 @@ void log_action(char* file_path, char* msg, int type){
 	char buffer[LOG_BUFFER_SIZE];
 	time_t now;
 	struct tm *time_struct;
+	const char *log_type[] = {"[READ] :", "[WRITE] :", "[OPEN] :", "[CLOSE] :", "[LOG] :", "[WARNING] :", "[ERROR] :"};
 	int fd;
 	
 	memset((void *)buffer,'\0', LOG_BUFFER_SIZE);
@@ -108,33 +109,11 @@ void log_action(char* file_path, char* msg, int type){
 	
 	time_struct = localtime((const time_t *)&now); /* Convert to tm struct. */
 	strftime(buffer, LOG_BUFFER_SIZE, "%m/%d/%Y %H:%M:%S> ", time_struct);
-
-	switch(type){
-		printf("here");
-		case 0:
-			strcat(buffer, "[READ] :");
-			break;
-		case 1:
-			strcat(buffer, "[WRITE] :");
-			break;
-		case 2:
-			strcat(buffer, "[OPEN] :");
-			break;
-		case 3:
-			strcat(buffer, "[CLOSE] :");
-			break;
-		case 4:
-			strcat(buffer, "[LOG] :");
-			break;
-		case 5:
-			strcat(buffer, "[WARNING] :");
-			break;
-		case 6:
-			strcat(buffer, "[ERROR] :");
-			break;
-		default:
-			perror("[ERROR] On log action, wrong type\n");
-			exit(-1);
+	if (type <= 6)
+		strcat(buffer, log_type[type]);
+	else{
+		perror("[ERROR] On log action, wrong type\n");
+		exit(-1);
 	}
 	strcat(buffer, msg);
 	strcat(buffer, "\n");

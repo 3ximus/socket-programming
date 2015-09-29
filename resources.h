@@ -58,9 +58,10 @@ struct server{
 };
 
 struct tes_server{
-	char *ip_addr;
-	int port;
 	int qid;
+	char ip_addr[16];
+	int port;
+	char time_limit[30];
 };
 
 /* -------------------------------- */

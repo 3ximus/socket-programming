@@ -76,7 +76,7 @@ unsigned char *AWTES_reply(const int topic_number);
  *  timestamp of the request
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQT_reply();
+unsigned char *AQT_reply(int, const struct tm* delay);
 
 /*
  * Used to reply to a RQS request
@@ -134,12 +134,14 @@ unsigned char *RQT_request(int fd, int sid){
 	char request[REQUEST_BUFFER_32] = "RQT ";
 	char char_sid[6];
 
+	/* convert sid to a char */
 	sprintf(char_sid, "%d", sid);
 	strcat(request, char_sid);
 	strcat(request, "\n");
 
-	send_tcp_request(fd, request);
-	
+	/* send request */
+	send_tcp_request(fd, (unsigned char*)request);
+	/* wait for reply */
 	server_reply = receive_tcp_reply(fd);
 
 	return server_reply;
@@ -147,12 +149,14 @@ unsigned char *RQT_request(int fd, int sid){
 
 unsigned char *RQS_request(int fd, int sid, int qid, char *answers){
 	unsigned char *server_reply = NULL;
-	char *request[REQUEST_BUFFER_32] = "RQS ";
+	char request[REQUEST_BUFFER_32] = "RQS ";
 	char char_sid[6], char_qid[6];
 
-	sprintf(char_sid. "%d", sid);
-	sprintf(char_qid. "%d", qid);
+	/* convert to strings */
+	sprintf(char_sid, "%d", sid);
+	sprintf(char_qid, "%d", qid);
 
+	/* build request */
 	strcat(request, char_sid);
 	strcat(request, " ");
 	strcat(request, char_qid);
@@ -160,7 +164,8 @@ unsigned char *RQS_request(int fd, int sid, int qid, char *answers){
 	strcat(request, answers);
 	strcat(request, "\n");
 
-	send_tcp_request(fd, request);
+	/* send request and wait for reply */
+	send_tcp_request(fd, (unsigned char*)request);
 	server_reply = receive_tcp_reply(fd);
 	return server_reply;
 }
@@ -207,7 +212,6 @@ unsigned char* AWT_reply(){
 
 	strcat((char *)server_reply, "\n");
 
-	/* TODO This must make the call to sendto a socket fd */
 	return server_reply;
 }
 
@@ -230,19 +234,42 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(int qid){
-	char qid_char[5];
+unsigned char *AQT_reply(int qid, const struct tm* expiration){
+	char qid_char[5], timestamp[30];
+	time_t now;
+	struct tm *time_struct;
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
-	
+	/* zero buffer */
 	memset((void *)server_reply,'\0', REPLY_BUFFER_OVER_9000);
+	memset((void *)timestamp,'\0', 30);
 
+	/* build reply */
 	strncpy((char* )server_reply, "AQT ", 4);
 	sprintf(qid_char, "%d", qid);
 	strcat((char *)server_reply, qid_char);
+	strcat((char *)server_reply, " ");
 
-	/* TODO rest of reply */
+	/* set time struct to be this exat moment */
+	time(&now);
+	time_struct = localtime((const time_t *)&now);
+
+	/* add expiration starting on this exact moment , doesnt fully support many days*/
+	time_struct->tm_sec += expiration->tm_sec;
+	time_struct->tm_min += (time_struct->tm_sec / 59) + expiration->tm_min;
+	time_struct->tm_hour += (time_struct->tm_min / 59) + expiration->tm_hour;
+	time_struct->tm_mday += (time_struct->tm_hour / 23) + expiration->tm_mday;
+	/* cap values */
+	time_struct->tm_sec = time_struct->tm_sec % 60;
+	time_struct->tm_min = time_struct->tm_min % 60;
+	time_struct->tm_hour = time_struct->tm_hour % 24;
+
+	/* convert current time to string format */
+	strftime(timestamp, 30, "%d%b%Y_%H:%M:%S\n", time_struct);
+	strcat((char *)server_reply, timestamp);
+
+	/* TODO send pdf size and data */
 	
-	strcat((char *)server_reply, "\n");
+	/*strcat((char *)server_reply, "\n");*/
 	return server_reply;
 }
 

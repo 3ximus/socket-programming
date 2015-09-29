@@ -5,18 +5,27 @@
  * Used for user server interaction
  * Features a shell with the commands: list , request, submit, help, exit
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
+	/* read arguments passed */
 	const struct server *ecp_server = optParser(argc, argv);
-	int sid = atoi(argv[1]), udp_socket;
-	size_t line_size = 0;
+	/* shell cmds */
 	char* cmd = NULL;
 	char **parsed_cmd;
+	/* server */
 	unsigned char *server_reply = NULL;
 	struct sockaddr_in udp_addr;
+	struct tes_server tes_info;
+	/* generic */
+	int sid = atoi(argv[1]), udp_socket, tcp_socket;
+	size_t line_size = 0;
+
+	/* inititate tes_server structure */
+	tes_info.qid = 0;
+	tes_info.port = 0;
 
 	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
+	/* initiate a UDP client */
 	udp_socket = start_udp_client(&udp_addr, ecp_server);
 
 	while(1){
@@ -28,8 +37,10 @@ int main(int argc, char *argv[])
 			continue;
 		}
 		
-		parsed_cmd = parseString(cmd, "\n");
-		parsed_cmd = parseString(parsed_cmd[0], " ");
+
+		/* remove '\n' */
+		cmd[strlen((char *)cmd) - 1] = '\0';
+		parsed_cmd = parseString(cmd, " ");
 
 		if(strcmp(parsed_cmd[0],"list") == 0 && parsed_cmd[1] == NULL)
 		{	
@@ -49,11 +60,10 @@ int main(int argc, char *argv[])
 			}
 			free(topics);
 		}
-		
+
 		else if (strcmp(parsed_cmd[0], "request") == 0 && parsed_cmd[2] == NULL){
 			char **parsed_reply = NULL;
-			char *ip_addr;
-			int port, tcp_socket;
+			char **parsed_reply_2 = NULL;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -64,61 +74,76 @@ int main(int argc, char *argv[])
 			/* receives tes server (containing requested topic) information */
 			server_reply = TER_request(udp_socket, parsed_cmd[1], &udp_addr);
 
-			parsed_reply = parseString((char *)server_reply, "\n");
+			/* remove '\n' */
+			server_reply[strlen((char *)server_reply) - 1] = '\0';
 			parsed_reply = parseString((char *)server_reply, " ");
 
-			ip_addr = parsed_reply[1];
-			port = atoi(parsed_reply[2]);
+			strcpy(tes_info.ip_addr, parsed_reply[1]);
+			tes_info.port = atoi(parsed_reply[2]);
 
-			if ((tcp_socket = start_tcp_client(ip_addr, port)) == -1){
+			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/* if the tes server isn't online */
 				perror("There is no TES server on that port.\n");
 				continue;
 			}
 
-			printf("TES server IP: %s\n", ip_addr);
-			printf("TES server Port: %d\n", port);
+			printf("TES server IP: [%s], Port: [%d]\n", tes_info.ip_addr, tes_info.port);
 
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
+			parsed_reply_2 = parseString((char *)server_reply, " ");
 
-			printf("Server reply: %s\n", server_reply);
-			/* save the pdf document */
+			tes_info.qid = atoi(parsed_reply_2[1]);
+			strncpy(tes_info.time_limit, parsed_reply_2[2], 30);
+
+			printf("This QID is: %d, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
+
+			/* TODO save the pdf document */
 
 			free(parsed_reply);
-
+			free(parsed_reply_2);
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
 			int i;
-			char *sequence = (char *)malloc(sizeof(char) * 5); /* Array of 5 char for sequence */
+			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */ 
 
 			/* Only reads 5 char separated with " ", ignore the rest */
 			for (i = 1; i < 6; i++)
 				if (parsed_cmd[i] == NULL){
 					/* Handle error */
-					printf("[ERROR] submit with nonexistent or incomplete sequence\n");
+					printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
 					break;
 					/* this still executes the possible send string*/
 				}
 				else{
 					if (strlen(parsed_cmd[i]) > 1 ){
 						/* Handle error */
-						printf("[ERROR] bad sequence given\n");
+						printf("[ERROR] Bad sequence given\n");
 						break;
 						/* this still executes the possible send string*/
 					}
 					else{
 						strcat(sequence, parsed_cmd[i]);
+						strcat(sequence, " ");
 					}
 				}
 
-			if ((tcp_socket = start_tcp_client(ip_addr, port)) == -1){
-				/* if the tes server isn't online */
-				perror("There is no TES server on that port.\n");
+			/* test if we have made a request before */
+			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0)
+			{
+				printf("[ERROR] No request was made before.\n");
+				free(sequence);
 				continue;
 			}
-			server_reply = RQT_request(fd, sid, 1001, )
+			
+			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
+				/*if the tes server isn't online */
+				perror("[ERROR] There is no TES server on that port.\n");
+				continue;
+			}
+			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
+			
 			free(sequence);
 		}
 
@@ -133,7 +158,7 @@ int main(int argc, char *argv[])
 			exit(1);
 		}
 		else{
-			printf("Wrong command \"%s\", or wrong command format.\n", parsed_cmd[0]);
+			printf("[ERROR] Wrong command \"%s\", or wrong command format.\n", parsed_cmd[0]);
 			free(parsed_cmd);
 			/* use continue so it doesn't try to free server_reply 
 			that has been freed on last cycle, caused double free */

@@ -27,16 +27,15 @@ Questionnaire Service:
 5. exit
     - Exits application
 
-** TO NOTE: **
-All memory must be freed on every cicle (after command is processed)
-
-
 ## ECP Server:
 This serves a shell waiting for user to execute the exit command, terminating the server
 
 
 ## TES Server:
 This serves a shell waiting for user to execute the exit command, terminating the server
+
+** TO NOTE **
+This server defines the amount of time allowed on the submissions
 
 ## Protocol:
 Use all xx_request() functions to communicate with the server if using the client, never communicate directly.
@@ -47,20 +46,20 @@ Use all xx_reply() functions to build the server replies.
 # To Do:
 - **[HIGH]** Tratar das replyes ERR e EOF
 > Tanto envia-las (server) como analisa-las (user ou client?)
-- Fazer com que o request receba pdf
+- **[HIGH]** Fazer com que o request receba pdf
 > Implica fazer os timestamps nos pedidos e atribuicao dos qid
-- Fazer o submit
-- Fazer timeout nas ligaceos UDP
+- **[HIGH]** Fazer o submit
+- **[MEDIUM]** Fazer timeout nas ligaceos UDP
 - **[LOW]** corrigir parseOpt
 - **[LOW]** corrigir parseString
 
 * * *
 # Bugs:
-
-- **[HIGH]** a parte do server que esvreve para a socket nao está preparada para enviar o ficheiro pdf
+- **[HIGH]** nao da para fazer um request sem um list primeiro??
+- **[MEDIUM]** a parte do server que esvreve para a socket pode nao estar preparada para enviar o ficheiro pdf
+- **[MEDIUM]** temos de limpar os buffers no cliente / servidor que tem as request e replies porque de vez em quando aparece lixo na mensagem
 - **[MEDIUM]** request com numero invalido (mt grande) fica preso no servidor ecp pq ele fecha a ligacao.
-- **[MEDIUM]** as funcoes que leem os argumentos para que nao aceitem qualquer opcao (-p -n, etc..)
-- **[LOW]** Será que a maneira como o server esta feito (loop do write dentro do loop do read) nao criará problemas quando o read nao conseguir ler tudo de uma vez? Quando isto acontecer a request nao vai ser analisada (parsed) na totalidade... Talvez nao haja problema pois as request sao pequenas... Mas se houver bugs isto poderá ser uma razao.
+- **[MEDIUM]** corrigir as funcoes que leem os argumentos para que nao aceitem qualquer opcao (-p -n, etc..)
 
 * * *
 # Notes:
