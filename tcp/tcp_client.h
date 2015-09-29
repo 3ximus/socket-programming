@@ -12,7 +12,7 @@ int start_tcp_client(const char *ip_addr, int port);
 /*
  *  TODO:
  */
-int send_tcp_request(int fd, const char *request);
+int send_tcp_request(int fd, const unsigned char *request);
 
 /* COMMMENTS */
 unsigned char *receive_tcp_reply(int fd);
@@ -49,8 +49,8 @@ int start_tcp_client(const char *ip_addr, int port)
 	return fd;
 }
 
-int send_tcp_request(int fd, const char *request){
-	int nbytes = strlen(request), nleft, nwritten;
+int send_tcp_request(int fd, const unsigned char *request){
+	int nbytes = strlen((char*)request), nleft, nwritten;
 
 	nleft = nbytes;
 
@@ -72,7 +72,7 @@ int send_tcp_request(int fd, const char *request){
 unsigned char *receive_tcp_reply(int fd){
 
 	int reply_buff_size = REPLY_BUFFER_OVER_9000, nread;
-	unsigned char *reply_buffer[REPLY_BUFFER_OVER_9000], *reply_ptr;
+	unsigned char reply_buffer[REPLY_BUFFER_OVER_9000], *reply_ptr;
 	unsigned char *reply  = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
 
 	/* point to the beginning reply */

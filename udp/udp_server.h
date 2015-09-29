@@ -29,7 +29,7 @@ void sigterm_handler(int x){
 int start_udp_server(int port, int *socket_fd){
 	int fd, addrlen, nread, child_pid = 0;
 	char received_buffer[REQUEST_BUFFER_32];
-	char log_msg[60];
+	/*char log_msg[60];*/
 	char **parsed_request; /* must be freed */
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;

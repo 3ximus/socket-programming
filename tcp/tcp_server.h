@@ -15,11 +15,10 @@ void sigterm_handler(int x){
 	exit(0);
 }
 
-int start_tcp_server(int port, int *socket_fd)
-{
+int start_tcp_server(int port, int *socket_fd) {
 	int fd, newfd, addrlen, n, nw, child_pid = 0;
 	char received_buffer[BUFFER_32];
-	char log_msg[60];
+	/*char log_msg[60];*/
 	unsigned char *reply_ptr;
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;
@@ -27,8 +26,7 @@ int start_tcp_server(int port, int *socket_fd)
 
 
 	/* TCP socket atribution create an endpoint for TCP communication. */
-	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1)
-	{
+	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1) {
 		perror("Error: socket()\n");
 		exit(1);
 	}
@@ -64,8 +62,7 @@ int start_tcp_server(int port, int *socket_fd)
 	fflush(stdout);
 
 	/* listen for connections on a socket */
-	if(listen(fd,5) == -1)
-	{
+	if(listen(fd,5) == -1) {
 		perror("Error: listen()\n");
 		exit(1);
 	}
@@ -73,21 +70,17 @@ int start_tcp_server(int port, int *socket_fd)
 	child_pid = fork();
 
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
-	if(child_pid == 0)
-	{
-		while(1) 
-		{
+	if(child_pid == 0) {
+		while(1) {
 			addrlen = sizeof(addr);
 
 			/* accepts a connection on a socket */
-			if((newfd = accept(fd,(struct sockaddr*)&addr,(unsigned int*)&addrlen)) == -1)
-			{
+			if((newfd = accept(fd,(struct sockaddr*)&addr,(unsigned int*)&addrlen)) == -1){
 				printf("Error: accept()\n");
 				exit(1);
 			}
 
-			while((n = read(newfd,received_buffer,BUFFER_32)) != 0)
-			{
+			while((n = read(newfd,received_buffer,BUFFER_32)) != 0){
 				if(n == -1)
 				{
 					perror("Error: read()\n");
@@ -112,7 +105,18 @@ int start_tcp_server(int port, int *socket_fd)
 
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){
-					reply_msg = AQT_reply(1001);
+					struct tm expiration_time;
+					int qid;
+
+					memset((void *)&expiration_time, 0, sizeof(struct tm));
+
+					/* set expiration time */
+					expiration_time.tm_min = 10;
+					/* set qid */
+					qid = 1001;
+
+					/* TODO PASS CORRECT QID AND TIME DELAY*/
+					reply_msg = AQT_reply(qid, (const struct tm *)&expiration_time);
 
 					/* remove \n at the end */
 					reply_msg[strlen((char *)reply_msg) - 1] = '\0';
@@ -125,6 +129,8 @@ int start_tcp_server(int port, int *socket_fd)
 
 				/* point to begining of reply */
 				reply_ptr = reply_msg;
+				/* set number of bytes of reply */
+				n = REPLY_BUFFER_1024;
 				while(n > 0)
 				{	
 					if((nw = write(newfd, reply_ptr, n)) <= 0)
