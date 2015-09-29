@@ -40,7 +40,10 @@
 #define REQUEST_BUFFER_32 32
 
 /* Maximum number of topics */
-#define TOPIC_NR	 99
+#define TOPIC_NR 99
+#define ANSW_NR	5
+#define TRUE  1
+#define FALSE 0
 
 /* Default server log file */
 #define UDP_SERVER_LOG "./ecp_server.log"
@@ -132,18 +135,8 @@ output: char table[0] = Ole
 char ** parseString(char*, const char*);
 
 /*
- * Creates a Table from fixed intput
+ * Checks if answer is between A and D (not case sensitive)
  */
-char **createTable(int, int);
-
-/*
- * Free table memory
- */
-void freeTable(char **, int);
-
-/* 
- * Dumps raw memory in hex byte and printable format
- */
-void dump(const unsigned char *, const unsigned int);
+int checkSubmitAnswer(char *answ);
 
 #endif

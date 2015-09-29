@@ -105,45 +105,58 @@ int main(int argc, char *argv[]){
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
-			int i;
-			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */ 
+			int i, error = FALSE; /* flag que me diz se ocorreu erro */
+			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */
 
-			/* Only reads 5 char separated with " ", ignore the rest */
-			for (i = 1; i < 6; i++)
-				if (parsed_cmd[i] == NULL){
-					/* Handle error */
-					printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
-					break;
-					/* this still executes the possible send string*/
-				}
-				else{
-					if (strlen(parsed_cmd[i]) > 1 ){
+			/* test if we have made a request before */
+			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
+				printf("[ERROR] No request was made before.\n");
+				error = TRUE;
+			} 
+
+			if(error == FALSE) {
+				/* Only reads 5 char separated with " " and only accepts anwsers between A -- D */
+				for (i = 1; i < ANSW_NR+1; i++)
+					if (parsed_cmd[i] == NULL){
 						/* Handle error */
-						printf("[ERROR] Bad sequence given\n");
+						printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
+						error = TRUE;
 						break;
 						/* this still executes the possible send string*/
 					}
 					else{
-						strcat(sequence, parsed_cmd[i]);
-						strcat(sequence, " ");
+						if (strlen(parsed_cmd[i]) > 1 ){
+							/* Handle error */
+							printf("[ERROR] Bad sequence given\n");
+							error = TRUE;
+							break;
+							/* this still executes the possible send string*/
+						}
+						else if(checkSubmitAnswer(parsed_cmd[i]) == 1){
+							/* Handle error */
+							printf("[ERROR] \"%s\" is not a valid answer.\nThe Questionnarie only accepts answers between \"A\" and \"D\".(or \"a\" and \"d\")\n",parsed_cmd[i]);
+							error = TRUE;
+							break;
+							/* this still executes the possible send string*/							
+						}
+						else{
+							strcat(sequence, parsed_cmd[i]);
+							strcat(sequence, " ");
+						}
+					}
+				
+				if(error == FALSE){
+					if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
+						/*if the tes server isn't online */
+						perror("[ERROR] There is no TES server on that port.\n");
+						error = TRUE;
+					}
+
+					if(error == FALSE){
+						server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
 					}
 				}
-
-			/* test if we have made a request before */
-			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0)
-			{
-				printf("[ERROR] No request was made before.\n");
-				free(sequence);
-				continue;
 			}
-			
-			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
-				/*if the tes server isn't online */
-				perror("[ERROR] There is no TES server on that port.\n");
-				continue;
-			}
-			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
-			
 			free(sequence);
 		}
 
