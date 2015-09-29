@@ -184,16 +184,12 @@ char **parseString(char* msg , const char* delim){
  * Checks if answer is between A and D (not case sensitive)
  */
 int checkSubmitAnswer(char *answ){
-	if(((strcmp(answ,"A")) == 0) || ((strcmp(answ,"a")) == 0))
+	char c = answ[0];
+
+	if(c >= 'A' && c <= 'D')
 		return 0;
 
-	if(((strcmp(answ,"B")) == 0) || ((strcmp(answ,"b")) == 0))
-		return 0;
-
-	if(((strcmp(answ,"D")) == 0) || ((strcmp(answ,"c")) == 0))
-		return 0;
-
-	if(((strcmp(answ,"D")) == 0) || ((strcmp(answ,"d")) == 0))
+	if(c >= 'a' && c <= 'd')
 		return 0;
 
 	return 1;
