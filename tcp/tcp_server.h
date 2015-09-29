@@ -18,7 +18,6 @@ void sigterm_handler(int x){
 int start_tcp_server(int port, int *socket_fd) {
 	int fd, newfd, addrlen, n, nw, child_pid = 0;
 	char received_buffer[BUFFER_32];
-	/*char log_msg[60];*/
 	unsigned char *reply_ptr;
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;
@@ -51,12 +50,6 @@ int start_tcp_server(int port, int *socket_fd) {
 		perror("Error: bind()\nTheres already a TCP server in the specified port.\n");
 		exit(1);
 	}
-
-	/* LOG */
-	/*memset((void *)log_msg,'\0', sizeof(log_msg));
-	sprintf(log_msg, "Started server on port %d", port);
-	log_action(TCP_SERVER_LOG, log_msg, 2);*/
-
 
 	printf("\rTES server listening on port %d\n> ", port);
 	fflush(stdout);
@@ -95,13 +88,6 @@ int start_tcp_server(int port, int *socket_fd) {
 				printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr),
 				 ntohs(addr.sin_port));
 				fflush(stdout);
-
-				/* LOG */		
-				/*memset((void *)log_msg,'\0', sizeof(log_msg));
-				sprintf(log_msg, "Received request \"%s\" from \"%s\" at \"%s\":%d", parsed_request[0],
-				gethostbyaddr((char *)&addr.sin_addr, sizeof(struct in_addr),AF_INET)->h_name,
-				inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-				log_action(TCP_SERVER_LOG, log_msg, 0);*/
 
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){

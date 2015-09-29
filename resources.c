@@ -76,52 +76,6 @@ void printHostInfo(struct sockaddr_in addr){
 }
 
 /*
- * Log action on server
- * Types are unix standard 64 present in /usr/include/x86_64-linux-gnu/asm/unistd_64.h
- * for the first 4 types of log actions
- * 0 - read
- * 1 - write
- * 2 - open
- * 3 - close
- * From here extra ones were added
- * 4 - log
- * 5 - warning
- * 6 - errror
- */
-void log_action(char* file_path, char* msg, int type){
-	char buffer[LOG_BUFFER_SIZE];
-	time_t now;
-	struct tm *time_struct;
-	const char *log_type[] = {"[READ] :", "[WRITE] :", "[OPEN] :", "[CLOSE] :", "[LOG] :", "[WARNING] :", "[ERROR] :"};
-	int fd;
-	
-	memset((void *)buffer,'\0', LOG_BUFFER_SIZE);
-
-	/* Try to open open or create log file */
-	fd = open(file_path, O_WRONLY|O_CREAT|O_APPEND, S_IRUSR|S_IWUSR);
-	if (fd == -1){
-		/* handle error */
-		perror("[ERROR] Opening server log file\n");
-		exit(-1);
-	}
-	
-	time(&now); /* Get number of seconds since epoch. */
-	
-	time_struct = localtime((const time_t *)&now); /* Convert to tm struct. */
-	strftime(buffer, LOG_BUFFER_SIZE, "%m/%d/%Y %H:%M:%S> ", time_struct);
-	if (type <= 6)
-		strcat(buffer, log_type[type]);
-	else{
-		perror("[ERROR] On log action, wrong type\n");
-		exit(-1);
-	}
-	strcat(buffer, msg);
-	strcat(buffer, "\n");
-	write(fd, buffer, strlen(buffer)); /* Write buffer to log. */
-	close(fd);
-}
-
-/*
  * Returns the entire file content
  * Content must be freed
  */
@@ -223,30 +177,4 @@ char **parseString(char* msg , const char* delim){
 	}
 
 	return tokens;
-}
-
-
-/* 
- * Dumps raw memory in hex byte and printable format
- */
-void dump(const unsigned char* data_buffer, const unsigned int length) {
-	unsigned char byte;
-	unsigned int i, j;
-	for (i = 0; i < length; i++) {
-		byte = data_buffer[i];
-		printf("%02x ", data_buffer[i]);	/* Display in hex byte */
-		if (((i%16) == 15) || (i == length - 1)) {
-			for (j = 0; j< 15 - (i%16); j++)
-				printf("   ");
-			printf("| ");
-			for (j = (i-(i%16)); j <= i; j++) { /* Display printable bytes from line */
-				byte = data_buffer[j];
-				if ((byte > 31) && (byte < 127)) /* Outside printable range */
-					printf("%c", byte);
-				else
-					printf(".");
-			}
-			printf("\n");
-		}
-	}
 }
