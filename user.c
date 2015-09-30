@@ -19,10 +19,6 @@ int main(int argc, char *argv[]){
 	int sid = atoi(argv[1]), udp_socket, tcp_socket;
 	size_t line_size = 0;
 
-	/* inititate tes_server structure */
-	tes_info.qid = 0;
-	tes_info.port = 0;
-
 	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
 	/* initiate a UDP client */
@@ -48,7 +44,6 @@ int main(int argc, char *argv[]){
 			int i, ntopic;
 			/* Send TQR request */
 
-		 
 			server_reply = TQR_request(udp_socket, &udp_addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
@@ -63,7 +58,11 @@ int main(int argc, char *argv[]){
 
 		else if (strcmp(parsed_cmd[0], "request") == 0 && parsed_cmd[2] == NULL){
 			char **parsed_reply = NULL;
-			char **parsed_reply_2 = NULL;
+			/* this is to store AQT reply therefore 4 spaces are needed before data segment */
+			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
+			unsigned char *server_reply_ptr;
+			char filename[10];
+			int quest_size, pdf_fd, written_bytes;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -91,59 +90,95 @@ int main(int argc, char *argv[]){
 
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
-			parsed_reply_2 = parseString((char *)server_reply, " ");
+			server_reply_ptr = server_reply;
+			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
 
-			tes_info.qid = atoi(parsed_reply_2[1]);
-			strncpy(tes_info.time_limit, parsed_reply_2[2], 30);
+			if (parsed_reply_2[4] != NULL)
+			{
+				printf("It is: %c\n", *server_reply);
+			}
 
-			printf("This QID is: %d, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
 
-			/* TODO save the pdf document */
+			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
+			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
+			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
+
+			printf("This QID is: %s, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
+
+			/* build filename */
+			strcpy(filename, tes_info.qid);
+			strcat(filename, ".pdf");
+			pdf_fd = open(filename, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
+			if (pdf_fd == -1) {
+				/* handle error */
+				perror("[ERROR] Opening topics.txt file\n");
+				free(parsed_reply);
+				free(parsed_reply_2);
+				exit(-1);
+			}
+			/* TODO offset cannot be hardcoded!! */
+			written_bytes = write(pdf_fd, server_reply_ptr + 56, quest_size);
+			fsync(pdf_fd);
+
+			printf("File Downloaded: \"%s\", file size: %d\n", filename, written_bytes);
 
 			free(parsed_reply);
 			free(parsed_reply_2);
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
-			int i;
-			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */ 
+			int i, error = FALSE; /* flag que me diz se ocorreu erro */
+			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */
 
-			/* Only reads 5 char separated with " ", ignore the rest */
-			for (i = 1; i < 6; i++)
-				if (parsed_cmd[i] == NULL){
-					/* Handle error */
-					printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
-					break;
-					/* this still executes the possible send string*/
-				}
-				else{
-					if (strlen(parsed_cmd[i]) > 1 ){
+			/* test if we have made a request before */
+			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
+				printf("[ERROR] No request was made before.\n");
+				error = TRUE;
+			} 
+
+			if(error == FALSE) {
+				/* Only reads 5 char separated with " " and only accepts anwsers between A -- D */
+				for (i = 1; i < ANSW_NR+1; i++)
+					if (parsed_cmd[i] == NULL){
 						/* Handle error */
-						printf("[ERROR] Bad sequence given\n");
+						printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
+						error = TRUE;
 						break;
 						/* this still executes the possible send string*/
 					}
 					else{
-						strcat(sequence, parsed_cmd[i]);
-						strcat(sequence, " ");
+						if (strlen(parsed_cmd[i]) > 1 ){
+							/* Handle error */
+							printf("[ERROR] Bad sequence given\n");
+							error = TRUE;
+							break;
+							/* this still executes the possible send string*/
+						}
+						else if(checkSubmitAnswer(parsed_cmd[i]) == 1){
+							/* Handle error */
+							printf("[ERROR] \"%s\" is not a valid answer.\nThe Questionnarie only accepts answers between \"A\" and \"D\".(or \"a\" and \"d\")\n",parsed_cmd[i]);
+							error = TRUE;
+							break;
+							/* this still executes the possible send string*/							
+						}
+						else{
+							strcat(sequence, parsed_cmd[i]);
+							strcat(sequence, " ");
+						}
+					}
+				
+				if(error == FALSE){
+					if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
+						/*if the tes server isn't online */
+						perror("[ERROR] There is no TES server on that port.\n");
+						error = TRUE;
+					}
+
+					if(error == FALSE){
+						server_reply = RQS_request(tcp_socket, sid, atoi(tes_info.qid), sequence);
 					}
 				}
-
-			/* test if we have made a request before */
-			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0)
-			{
-				printf("[ERROR] No request was made before.\n");
-				free(sequence);
-				continue;
 			}
-			
-			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
-				/*if the tes server isn't online */
-				perror("[ERROR] There is no TES server on that port.\n");
-				continue;
-			}
-			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
-			
 			free(sequence);
 		}
 

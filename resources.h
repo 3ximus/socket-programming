@@ -34,13 +34,16 @@
 #define BUFFER_32 32
 #define LOG_BUFFER_SIZE 256
 
-#define REPLY_BUFFER_OVER_9000 4096
+#define REPLY_BUFFER_OVER_9000 2000000
 #define REPLY_BUFFER_1024 1024
 #define REPLY_BUFFER_128 128
 #define REQUEST_BUFFER_32 32
 
 /* Maximum number of topics */
-#define TOPIC_NR	 99
+#define TOPIC_NR 99
+#define ANSW_NR	5
+#define TRUE  1
+#define FALSE 0
 
 /* Default server log file */
 #define UDP_SERVER_LOG "./ecp_server.log"
@@ -58,7 +61,7 @@ struct server{
 };
 
 struct tes_server{
-	int qid;
+	char qid[30];
 	char ip_addr[16];
 	int port;
 	char time_limit[30];
@@ -123,27 +126,21 @@ int readServerConfig();
 void writeServerConfig(int);
 
 /* 
-Returns a table with separated strings
-input: char* msg = "Ole|Ola", char* delim = "|"
-
-output: char table[0] = Ole
-		char table[1] = Ola
-*/
+ * Returns a table with separated strings
+ */
 char ** parseString(char*, const char*);
 
 /*
- * Creates a Table from fixed intput
+ * Receives a recepient for the parsed string, the string to be parsed, the delimiter chars and the
+ *  amount of parsed elements
+ * Returns the ammount of parsed strings (vector size) or -1 if an error ocurred or invalid 
+ *  arguments where passed
  */
-char **createTable(int, int);
+int parse_string(char **, char*, const char*, int);
 
 /*
- * Free table memory
+ * Checks if answer is between A and D (not case sensitive)
  */
-void freeTable(char **, int);
-
-/* 
- * Dumps raw memory in hex byte and printable format
- */
-void dump(const unsigned char *, const unsigned int);
+int checkSubmitAnswer(char *answ);
 
 #endif
