@@ -34,7 +34,7 @@
 #define BUFFER_32 32
 #define LOG_BUFFER_SIZE 256
 
-#define REPLY_BUFFER_OVER_9000 4096
+#define REPLY_BUFFER_OVER_9000 2000000
 #define REPLY_BUFFER_1024 1024
 #define REPLY_BUFFER_128 128
 #define REQUEST_BUFFER_32 32
@@ -61,7 +61,7 @@ struct server{
 };
 
 struct tes_server{
-	int qid;
+	char qid[30];
 	char ip_addr[16];
 	int port;
 	char time_limit[30];

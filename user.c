@@ -19,10 +19,6 @@ int main(int argc, char *argv[]){
 	int sid = atoi(argv[1]), udp_socket, tcp_socket;
 	size_t line_size = 0;
 
-	/* inititate tes_server structure */
-	tes_info.qid = 0;
-	tes_info.port = 0;
-
 	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
 
 	/* initiate a UDP client */
@@ -48,7 +44,6 @@ int main(int argc, char *argv[]){
 			int i, ntopic;
 			/* Send TQR request */
 
-		 
 			server_reply = TQR_request(udp_socket, &udp_addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
@@ -65,6 +60,9 @@ int main(int argc, char *argv[]){
 			char **parsed_reply = NULL;
 			/* this is to store AQT reply therefore 4 spaces are needed before data segment */
 			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
+			unsigned char *server_reply_ptr;
+			char filename[10];
+			int quest_size, pdf_fd, written_bytes;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -92,14 +90,30 @@ int main(int argc, char *argv[]){
 
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
+			server_reply_ptr = server_reply;
 			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
 
-			tes_info.qid = atoi(parsed_reply_2[1]);
-			strncpy(tes_info.time_limit, parsed_reply_2[2], 30);
+			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
+			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
+			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
 
-			printf("This QID is: %d, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
+			printf("This QID is: %s, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
 
-			/* TODO save the pdf document */
+			/* build filename */
+			strcpy(filename, tes_info.qid);
+			strcat(filename, ".pdf");
+			pdf_fd = open(filename, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
+			if (pdf_fd == -1) {
+				/* handle error */
+				perror("[ERROR] Opening topics.txt file\n");
+				free(parsed_reply);
+				free(parsed_reply_2);
+				exit(-1);
+			}
+			written_bytes = write(pdf_fd, server_reply_ptr, quest_size);
+			fsync(pdf_fd);
+
+			printf("File Downloaded: \"%s\", file size: %d\n", filename, written_bytes);
 
 			free(parsed_reply);
 			free(parsed_reply_2);
@@ -154,7 +168,7 @@ int main(int argc, char *argv[]){
 					}
 
 					if(error == FALSE){
-						server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
+						server_reply = RQS_request(tcp_socket, sid, atoi(tes_info.qid), sequence);
 					}
 				}
 			}

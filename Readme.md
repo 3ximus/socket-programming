@@ -44,6 +44,8 @@ Use all xx_reply() functions to build the server replies.
 * * *
 
 # To Do:
+- **[HIGH]** adicionar checks em todo o lado para nao haver erros
+> apanhar erros nas funcoes usadas, nao aceder a posicoes de parsed strings que podem nao existir, etc
 - **[HIGH]** Tratar das replyes ERR e EOF
 > Tanto envia-las (server) como analisa-las (user ou client?)
 - **[HIGH]** Fazer com que o request receba pdf
@@ -56,6 +58,7 @@ Use all xx_reply() functions to build the server replies.
 * * *
 # Bugs:
 - **[HIGH]** nao da para fazer um request sem um list primeiro??
+- **[HIGH]** request nao parece que recebe bem a reply com o pdf, aumentei o tamanho para poder conter o ficheiro mas este nao e passado na totalidade...
 - **[MEDIUM]** a parte do server que esvreve para a socket pode nao estar preparada para enviar o ficheiro pdf
 - **[MEDIUM]** temos de limpar os buffers no cliente / servidor que tem as request e replies porque de vez em quando aparece lixo na mensagem
 - **[MEDIUM]** request com numero invalido (mt grande) fica preso no servidor ecp pq ele fecha a ligacao.
