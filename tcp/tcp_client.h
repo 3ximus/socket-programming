@@ -86,14 +86,13 @@ unsigned char *receive_tcp_reply(int fd){
 			exit(1);
 		}
 
-		/* copy the buffer to the reply reply */
-		memcpy(reply_ptr, reply_buffer, REPLY_BUFFER_OVER_9000);
+		/* copy the buffer to the reply ptr */
+		memcpy(reply_ptr, reply_buffer, nread);
 		/* move the "writing head" forward */
 		reply_ptr += nread;
 	
-		/* if we read less bytes than reply_buff_size */
-		if(nread < reply_buff_size)
-		{
+		/* if we read 0 bytes means EOF reached */
+		if(nread == 0){
 			break;
 		}
 	}

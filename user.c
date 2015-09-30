@@ -93,6 +93,12 @@ int main(int argc, char *argv[]){
 			server_reply_ptr = server_reply;
 			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
 
+			if (parsed_reply_2[4] != NULL)
+			{
+				printf("It is: %c\n", *server_reply);
+			}
+
+
 			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
 			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
@@ -110,7 +116,8 @@ int main(int argc, char *argv[]){
 				free(parsed_reply_2);
 				exit(-1);
 			}
-			written_bytes = write(pdf_fd, server_reply_ptr, quest_size);
+			/* TODO offset cannot be hardcoded!! */
+			written_bytes = write(pdf_fd, server_reply_ptr + 56, quest_size);
 			fsync(pdf_fd);
 
 			printf("File Downloaded: \"%s\", file size: %d\n", filename, written_bytes);

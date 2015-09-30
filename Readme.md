@@ -51,6 +51,7 @@ Use all xx_reply() functions to build the server replies.
 - **[HIGH]** Fazer com que o request receba pdf
 > Implica fazer os timestamps nos pedidos e atribuicao dos qid
 - **[HIGH]** Fazer o submit
+- **[MEDIUM]** Arranjar maneira de calcular o offset do pdf na reply, por agora usei um valor precalculado qu nao vai resultar se a reply tiver um tamanho diferente
 - **[MEDIUM]** Fazer timeout nas ligaceos UDP
 - **[LOW]** corrigir parseOpt
 - **[LOW]** corrigir parseString
