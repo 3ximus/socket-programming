@@ -158,12 +158,8 @@ void writeServerConfig(int qid){
 }
 
 /* 
-Devolve um tabela de strings em que cada entrada foi separada por simbolo de separacao.
-input: char* msg = "Ole|Ola", char* delim = "|"
-
-output: char table[0] = Ole
-		char table[1] = Ola
-*/
+ * Devolve um tabela de strings em que cada entrada foi separada por simbolo de separacao.
+ */
 char **parseString(char* msg , const char* delim){
 	int i = 0; 
 
@@ -177,6 +173,34 @@ char **parseString(char* msg , const char* delim){
 	}
 
 	return tokens;
+}
+
+/*
+ * Receives a recepient for the parsed string, the string to be parsed, the delimiter chars and the
+ *  amount of parsed elements
+ * Returns the ammount of parsed strings (vector size) or -1 if an error ocurred or invalid 
+ *  arguments where passed
+ */
+int parse_string(char **parsed, char *string, const char *delim, int amount){
+	int token_n = 0;
+	char *token;
+	int i;
+	/* error check */
+	if (parsed == NULL || string == NULL || delim == NULL || amount == 0)
+		return -1;
+	/* first token */
+	token = strtok(string, delim);
+	/* keep parsing */
+	while (token_n < amount && token != NULL){
+		parsed[token_n] = token;
+		token_n++;
+
+		token = strtok(NULL, delim);
+	}
+	/* set the rest to NULL */
+	for (i = token_n; i < amount; ++i)
+		parsed[i] = NULL;
+	return token_n;
 }
 
 

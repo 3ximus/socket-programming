@@ -126,13 +126,17 @@ int readServerConfig();
 void writeServerConfig(int);
 
 /* 
-Returns a table with separated strings
-input: char* msg = "Ole|Ola", char* delim = "|"
-
-output: char table[0] = Ole
-		char table[1] = Ola
-*/
+ * Returns a table with separated strings
+ */
 char ** parseString(char*, const char*);
+
+/*
+ * Receives a recepient for the parsed string, the string to be parsed, the delimiter chars and the
+ *  amount of parsed elements
+ * Returns the ammount of parsed strings (vector size) or -1 if an error ocurred or invalid 
+ *  arguments where passed
+ */
+int parse_string(char **, char*, const char*, int);
 
 /*
  * Checks if answer is between A and D (not case sensitive)

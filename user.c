@@ -63,7 +63,8 @@ int main(int argc, char *argv[]){
 
 		else if (strcmp(parsed_cmd[0], "request") == 0 && parsed_cmd[2] == NULL){
 			char **parsed_reply = NULL;
-			char **parsed_reply_2 = NULL;
+			/* this is to store AQT reply therefore 4 spaces are needed before data segment */
+			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -91,7 +92,7 @@ int main(int argc, char *argv[]){
 
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
-			parsed_reply_2 = parseString((char *)server_reply, " ");
+			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
 
 			tes_info.qid = atoi(parsed_reply_2[1]);
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30);
