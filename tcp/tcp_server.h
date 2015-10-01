@@ -92,17 +92,14 @@ int start_tcp_server(int port, int *socket_fd) {
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){
 					struct tm expiration_time;
-					int qid;
 
 					memset((void *)&expiration_time, 0, sizeof(struct tm));
 
 					/* set expiration time */
 					expiration_time.tm_min = 10;
-					/* set qid */
-					qid = 1001;
 
 					/* TODO PASS CORRECT QID AND TIME DELAY*/
-					reply_msg = AQT_reply(qid, (const struct tm *)&expiration_time);
+					reply_msg = AQT_reply(1001, (const struct tm *)&expiration_time);
 
 					/* remove \n at the end */
 					reply_msg[strlen((char *)reply_msg) - 1] = '\0';

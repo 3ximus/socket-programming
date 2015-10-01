@@ -111,7 +111,9 @@ char *findTopic(const int search_me){
 	ssize_t bytes_read;
 	int i = 1;
 	FILE *fd;
-	char *read_buffer = NULL, **parsed_line, *content = (char *)malloc(BUFFER_32 * sizeof(char));
+	char *read_buffer = NULL,
+		 **parsed_line = (char **)malloc(TOPIC_NR * sizeof(char *)),
+		 *content = (char *)malloc(BUFFER_32 * sizeof(char));
 	
 	memset((void *)content,'\0', BUFFER_32);
 
@@ -125,7 +127,9 @@ char *findTopic(const int search_me){
 		}
 		i++;
 	}
-	parsed_line = parseString(read_buffer, " ");
+	if (3 != parse_string(parsed_line, read_buffer, " \n", 3))
+		return "EOF";
+
 	/* add IP */
 	strcpy(content, parsed_line[1]);
 	strcat(content, " ");

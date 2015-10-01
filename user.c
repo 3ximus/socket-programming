@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
 
 			/* remove '\n' */
 			server_reply[strlen((char *)server_reply) - 1] = '\0';
-			parsed_reply = parseString((char *)server_reply, " ");
+			parsed_reply = parseString((char *)server_reply, " \n");
 
 			strcpy(tes_info.ip_addr, parsed_reply[1]);
 			tes_info.port = atoi(parsed_reply[2]);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]){
 			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */
 
 			/* test if we have made a request before */
-			if (tes_info.qid == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
+			if (atoi(tes_info.qid) == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
 				error = TRUE;
 			} 

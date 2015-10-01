@@ -234,8 +234,8 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(int qid, const struct tm* expiration){
-	char qid_char[5], timestamp[30];
+unsigned char *AQT_reply(int sid, const struct tm* expiration){
+	char qid_char[5], timestamp[30], timestamp_now[30];
 	time_t now;
 	struct tm *time_struct;
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
@@ -245,13 +245,19 @@ unsigned char *AQT_reply(int qid, const struct tm* expiration){
 
 	/* build reply */
 	strncpy((char* )server_reply, "AQT ", 4);
-	sprintf(qid_char, "%d", qid);
-	strcat((char *)server_reply, qid_char);
-	strcat((char *)server_reply, " ");
 
 	/* set time struct to be this exat moment */
 	time(&now);
 	time_struct = localtime((const time_t *)&now);
+
+	/* convert current time to string format */
+	strftime(timestamp_now, 30, "%d%b%Y_%H:%M:%S", time_struct);
+
+	sprintf(qid_char, "%d", sid);
+	strcat((char *)server_reply, qid_char);
+	strcat((char *)server_reply, "_");
+	strcat((char *)server_reply, timestamp_now);
+	strcat((char *)server_reply, " ");
 
 	/* add expiration starting on this exact moment , doesnt fully support many days*/
 	time_struct->tm_sec += expiration->tm_sec;
