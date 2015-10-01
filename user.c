@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
 			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
 			unsigned char *server_reply_ptr;
 			char filename[10];
-			int quest_size, pdf_fd, written_bytes;
+			int quest_size, pdf_fd, written_bytes, i, offset = 0;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -98,7 +98,6 @@ int main(int argc, char *argv[]){
 				printf("It is: %c\n", *server_reply);
 			}
 
-
 			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
 			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
@@ -116,8 +115,10 @@ int main(int argc, char *argv[]){
 				free(parsed_reply_2);
 				exit(-1);
 			}
-			/* TODO offset cannot be hardcoded!! */
-			written_bytes = write(pdf_fd, server_reply_ptr + 56, quest_size);
+			/* calculate offset */
+			for(i = 0; i < 4; i++) offset += strlen(parsed_reply_2[i]) + 1;
+			/* write pdf */
+			written_bytes = write(pdf_fd, server_reply_ptr + offset, quest_size);
 			fsync(pdf_fd);
 
 			printf("File Downloaded: \"%s\", file size: %d\n", filename, written_bytes);
