@@ -10,7 +10,7 @@ int main(int argc, char *argv[]){
 	const struct server *ecp_server = optParser(argc, argv);
 	/* shell cmds */
 	char* cmd = NULL;
-	char **parsed_cmd;
+	char **parsed_cmd = (char **)malloc(6 * sizeof(char *));
 	/* server */
 	unsigned char *server_reply = NULL;
 	struct sockaddr_in udp_addr;
@@ -32,18 +32,16 @@ int main(int argc, char *argv[]){
 			perror("[ERROR] no command\n");
 			continue;
 		}
-		
-
 		/* remove '\n' */
 		cmd[strlen((char *)cmd) - 1] = '\0';
-		parsed_cmd = parseString(cmd, " ");
+		parse_string(parsed_cmd, cmd, " \n", 6);
 
 		if(strcmp(parsed_cmd[0],"list") == 0 && parsed_cmd[1] == NULL)
 		{	
 			char **topics = NULL;
 			int i, ntopic;
-			/* Send TQR request */
 
+			/* Send TQR request */
 			server_reply = TQR_request(udp_socket, &udp_addr);
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
@@ -62,12 +60,12 @@ int main(int argc, char *argv[]){
 			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
 			unsigned char *server_reply_ptr;
 			char filename[10];
+			char parsed_time[30];
 			int quest_size, pdf_fd, written_bytes, i, offset = 0;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
 				printf("[ERROR] request with no topic\n");
-				free(parsed_cmd);
 				continue;
 			}
 			/* receives tes server (containing requested topic) information */
@@ -83,6 +81,7 @@ int main(int argc, char *argv[]){
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/* if the tes server isn't online */
 				perror("There is no TES server on that port.\n");
+				free(server_reply);
 				continue;
 			}
 
@@ -102,6 +101,7 @@ int main(int argc, char *argv[]){
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
 			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
 
+			/* TODO make time string prettier */
 			printf("This QID is: %s, and you have until %s to submit it.\n", tes_info.qid, tes_info.time_limit);
 
 			/* build filename */
@@ -125,63 +125,33 @@ int main(int argc, char *argv[]){
 
 			free(parsed_reply);
 			free(parsed_reply_2);
+			close(tcp_socket);
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
-			int i, error = FALSE; /* flag que me diz se ocorreu erro */
-			char *sequence = (char *)malloc(sizeof(char) * 10); /* Array of 5 char for sequence */
+			char sequence[10];
 
 			/* test if we have made a request before */
 			if (atoi(tes_info.qid) == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
-				error = TRUE;
-			} 
-
-			if(error == FALSE) {
-				/* Only reads 5 char separated with " " and only accepts anwsers between A -- D */
-				for (i = 1; i < ANSW_NR+1; i++)
-					if (parsed_cmd[i] == NULL){
-						/* Handle error */
-						printf("[ERROR] Submit with nonexistent or incomplete sequence\n");
-						error = TRUE;
-						break;
-						/* this still executes the possible send string*/
-					}
-					else{
-						if (strlen(parsed_cmd[i]) > 1 ){
-							/* Handle error */
-							printf("[ERROR] Bad sequence given\n");
-							error = TRUE;
-							break;
-							/* this still executes the possible send string*/
-						}
-						else if(checkSubmitAnswer(parsed_cmd[i]) == 1){
-							/* Handle error */
-							printf("[ERROR] \"%s\" is not a valid answer.\nThe Questionnarie only accepts answers between \"A\" and \"D\".(or \"a\" and \"d\")\n",parsed_cmd[i]);
-							error = TRUE;
-							break;
-							/* this still executes the possible send string*/							
-						}
-						else{
-							strcat(sequence, parsed_cmd[i]);
-							strcat(sequence, " ");
-						}
-					}
-				
-				if(error == FALSE){
-					if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
-						/*if the tes server isn't online */
-						perror("[ERROR] There is no TES server on that port.\n");
-						error = TRUE;
-					}
-
-					if(error == FALSE){
-						server_reply = RQS_request(tcp_socket, sid, atoi(tes_info.qid), sequence);
-					}
-				}
+				continue;
 			}
-			free(sequence);
+			if(checkSubmitAnswer(parsed_cmd) == -1) {
+				printf("[ERROR] Bad submit answer.\n");
+				continue;
+			}
+			printf("sai do ckeck\n");
+
+			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
+				/*if the tes server isn't online */
+				perror("[ERROR] There is no TES server on that port.\n");
+				continue;
+			}
+			server_reply = RQS_request(tcp_socket, sid, atoi(tes_info.qid), sequence);
+			printf("%s\n", server_reply);
+			close(tcp_socket);
 		}
+
 
 		else if (strcmp(parsed_cmd[0], "help") == 0 && parsed_cmd[1] == NULL){
 			printf("Questionnarie End User Application.\nReceives commands to interact with online questionnaires\n\n");
@@ -195,7 +165,6 @@ int main(int argc, char *argv[]){
 		}
 		else{
 			printf("[ERROR] Wrong command \"%s\", or wrong command format.\n", parsed_cmd[0]);
-			free(parsed_cmd);
 			/* use continue so it doesn't try to free server_reply 
 			that has been freed on last cycle, caused double free */
 			continue;
@@ -203,8 +172,8 @@ int main(int argc, char *argv[]){
 
 		/* free at every cicle */
 		free(server_reply);
-		free(parsed_cmd);
 	}
+	free(parsed_cmd);
 	return 0;
 }
 

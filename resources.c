@@ -207,19 +207,22 @@ int parse_string(char **parsed, char *string, const char *delim, int amount){
 	return token_n;
 }
 
-
 /*
  * Checks if answer is between A and D (not case sensitive)
  */
-int checkSubmitAnswer(char *answ){
-	char c = answ[0];
+int checkSubmitAnswer(char **answ){
+	int n = 1;
 
-	if(c >= 'A' && c <= 'D')
-		return 0;
+	while (answ[n] != NULL){
+		if (strlen(answ[n]) != 1)
+			break;
+		if((answ[n][0] < 'A' || answ[n][0] > 'D') && (answ[n][0] < 'a' || answ[n][0] > 'd'))
+			break;
+		if (n == ANSW_NR)
+			return 0;
+		n++;
+	}
 
-	if(c >= 'a' && c <= 'd')
-		return 0;
-
-	return 1;
+	return -1;
 }
 

@@ -90,11 +90,13 @@ unsigned char *receive_tcp_reply(int fd){
 		memcpy(reply_ptr, reply_buffer, nread);
 		/* move the "writing head" forward */
 		reply_ptr += nread;
+
+		if (strcmp((char *)reply_buffer, "ERR\n") == 0)
+			break;
 	
 		/* if we read 0 bytes means EOF reached */
-		if(nread == 0){
+		if(nread == 0)
 			break;
-		}
 	}
 	close(fd);
 	return reply;

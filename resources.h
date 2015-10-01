@@ -141,6 +141,6 @@ int parse_string(char **, char*, const char*, int);
 /*
  * Checks if answer is between A and D (not case sensitive)
  */
-int checkSubmitAnswer(char *answ);
+int checkSubmitAnswer(char **answ);
 
 #endif
