@@ -47,7 +47,7 @@ unsigned char *RQT_request(int, int);
  * Sends the user sid, the questionnarie qid and the answers
  * Reply must be freed on the client
  */
-unsigned char *RQS_request(int, int, int, char *);
+unsigned char *RQS_request(int, int, char*, char *);
 
 /* REPLIES
  * These are server side functions, only to be called on the server
@@ -147,29 +147,27 @@ unsigned char *RQT_request(int fd, int sid){
 	return server_reply;
 }
 
-unsigned char *RQS_request(int fd, int sid, int qid, char *answers){
+unsigned char *RQS_request(int fd, int sid, char* qid, char *answers){
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_32] = "RQS ";
-	char char_sid[6], char_qid[6];
+	char char_sid[6];
 
 	/* convert to strings */
 	sprintf(char_sid, "%d", sid);
-	sprintf(char_qid, "%d", qid);
 
 	/* build request */
 	strcat(request, char_sid);
 	strcat(request, " ");
-	strcat(request, char_qid);
+	strcat(request, qid);
 	strcat(request, " ");
 	strcat(request, answers);
-	strcat(request, "\n");
-
+	request[strlen((char *)request) - 1] = '\n';
+	
 	/* send request and wait for reply */
 	send_tcp_request(fd, (unsigned char*)request);
 	server_reply = receive_tcp_reply(fd);
 	return server_reply;
 }
-
 /* ----- REPLIES -------- */
 
 

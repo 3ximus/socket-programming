@@ -211,18 +211,16 @@ int parse_string(char **parsed, char *string, const char *delim, int amount){
  * Checks if answer is between A and D (not case sensitive)
  */
 int checkSubmitAnswer(char **answ){
-	int n = 1;
+	int n;
 
-	while (answ[n] != NULL){
+	for (n=1; n<CMD_SIZE;n++){
+		if (answ[n] == NULL)
+			return -1;
 		if (strlen(answ[n]) != 1)
-			break;
+			return -1;
 		if((answ[n][0] < 'A' || answ[n][0] > 'D') && (answ[n][0] < 'a' || answ[n][0] > 'd'))
-			break;
-		if (n == ANSW_NR)
-			return 0;
-		n++;
+			return -1;
 	}
-
-	return -1;
+	return 0;
 }
 

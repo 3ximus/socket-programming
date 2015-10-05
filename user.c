@@ -130,24 +130,31 @@ int main(int argc, char *argv[]){
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
 			char sequence[10];
+			int n;
+			memset(sequence, '\0', 10);
 
 			/* test if we have made a request before */
-			if (atoi(tes_info.qid) == 0 || tes_info.ip_addr == NULL || tes_info.port == 0){
+			/*if (tes_info.qid == NULL || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
 				continue;
-			}
+			}*/
 			if(checkSubmitAnswer(parsed_cmd) == -1) {
 				printf("[ERROR] Bad submit answer.\n");
 				continue;
 			}
-			printf("sai do ckeck\n");
+			for (n=1; n<CMD_SIZE;n++){
+				if (parsed_cmd[n][0] > 'D')
+					parsed_cmd[n][0] -= ('a' - 'A');
+				strcat(sequence, parsed_cmd[n]);
+				strcat(sequence, " ");
+			}
 
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/*if the tes server isn't online */
 				perror("[ERROR] There is no TES server on that port.\n");
 				continue;
 			}
-			server_reply = RQS_request(tcp_socket, sid, atoi(tes_info.qid), sequence);
+			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
 			printf("%s\n", server_reply);
 			close(tcp_socket);
 		}
