@@ -102,32 +102,33 @@ int start_tcp_server(int port, int *socket_fd) {
 					reply_msg = AQT_reply(76959, (const struct tm *)&expiration_time);
 
 					/* remove \n at the end */
-					reply_msg[strlen((char *)reply_msg) - 1] = '\0';
+					/*reply_msg[strlen((char *)reply_msg) - 1] = '\0';*/
 
 					printf("\rSending AQT reply \"%s\"\n> ", reply_msg);
 					fflush(stdout);
+					break;
 				}
-				else 
+				else{
 					reply_msg = ERR_reply();
-
-				/* point to begining of reply */
-				reply_ptr = reply_msg;
-				/* set number of bytes of reply */
-				n = REPLY_BUFFER_1024;
-				while(n > 0)
-				{	
-					if((nw = write(newfd, reply_ptr, n)) <= 0)
-					{
-						perror("Error: write()\n");
-						exit(1);
-					}
-					n -= nw;
-					reply_ptr += nw;
+					break;
 				}
-
-				free(reply_msg);
-				free(parsed_request);
 			}
+			/* point to begining of reply */
+			reply_ptr = reply_msg;
+			/* set number of bytes of reply */
+			n = strlen((char*)reply_msg);
+			while(n > 0)
+			{	
+				if((nw = write(newfd, reply_ptr, n)) <= 0)
+				{
+					perror("Error: write()\n");
+					exit(1);
+				}
+				n -= nw;
+				reply_ptr += nw;
+			}
+			free(reply_msg);
+			free(parsed_request);
 			close(newfd);
 		}	
 	}

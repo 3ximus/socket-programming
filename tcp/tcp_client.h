@@ -15,7 +15,7 @@ int start_tcp_client(const char *ip_addr, int port);
 int send_tcp_request(int fd, const unsigned char *request);
 
 /* COMMMENTS */
-unsigned char *receive_tcp_reply(int fd);
+unsigned char *receive_tcp_reply(int fd, int);
 
 /* --------------------------- */
 
@@ -69,35 +69,37 @@ int send_tcp_request(int fd, const unsigned char *request){
 	return nwritten;
 }
 
-unsigned char *receive_tcp_reply(int fd){
+unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 
-	int reply_buff_size = REPLY_BUFFER_OVER_9000, nread;
-	unsigned char reply_buffer[REPLY_BUFFER_OVER_9000], *reply_ptr;
-	unsigned char *reply  = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
+	int nread, chr;
+	unsigned char *reply_buffer = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
+	unsigned char *reply_ptr;
+	unsigned char *reply  = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
 
 	/* point to the beginning reply */
 	reply_ptr = reply;
 
-	while(reply_buff_size > 0)
+	while(1)
 	{
 		if((nread = read(fd, reply_buffer, reply_buff_size)) == -1)
 		{
 			perror("Error: read()\n");
 			exit(1);
 		}
-
 		/* copy the buffer to the reply ptr */
 		memcpy(reply_ptr, reply_buffer, nread);
 		/* move the "writing head" forward */
 		reply_ptr += nread;
+		
+		for (chr = 0; chr <= nread; chr++)
+			if (reply_buffer[chr] == '\n')
+				break;
 
-		if (strcmp((char *)reply_buffer, "ERR\n") == 0)
-			break;
-	
 		/* if we read 0 bytes means EOF reached */
 		if(nread == 0)
 			break;
 	}
 	close(fd);
+	free(reply_buffer);
 	return reply;
 }

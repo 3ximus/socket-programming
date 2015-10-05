@@ -142,7 +142,7 @@ unsigned char *RQT_request(int fd, int sid){
 	/* send request */
 	send_tcp_request(fd, (unsigned char*)request);
 	/* wait for reply */
-	server_reply = receive_tcp_reply(fd);
+	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_OVER_9000);
 
 	return server_reply;
 }
@@ -165,7 +165,7 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char *answers){
 	
 	/* send request and wait for reply */
 	send_tcp_request(fd, (unsigned char*)request);
-	server_reply = receive_tcp_reply(fd);
+	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_128);
 	return server_reply;
 }
 /* ----- REPLIES -------- */
@@ -268,12 +268,12 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 	time_struct->tm_hour = time_struct->tm_hour % 24;
 
 	/* convert current time to string format */
-	strftime(timestamp, 30, "%d%b%Y_%H:%M:%S\n", time_struct);
+	strftime(timestamp, 30, "%d%b%Y_%H:%M:%S", time_struct);
 	strcat((char *)server_reply, timestamp);
 
 	/* TODO send pdf size and data */
-	
-	/*strcat((char *)server_reply, "\n");*/
+
+	strcat((char * )server_reply, "\n");
 	return server_reply;
 }
 

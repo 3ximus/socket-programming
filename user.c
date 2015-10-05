@@ -91,12 +91,6 @@ int main(int argc, char *argv[]){
 			server_reply = RQT_request(tcp_socket, sid);
 			server_reply_ptr = server_reply;
 			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
-
-			if (parsed_reply_2[4] != NULL)
-			{
-				printf("It is: %c\n", *server_reply);
-			}
-
 			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
 			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
@@ -134,10 +128,10 @@ int main(int argc, char *argv[]){
 			memset(sequence, '\0', 10);
 
 			/* test if we have made a request before */
-			/*if (tes_info.qid == NULL || tes_info.ip_addr == NULL || tes_info.port == 0){
+			if (tes_info.qid == NULL || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
 				continue;
-			}*/
+			}
 			if(checkSubmitAnswer(parsed_cmd) == -1) {
 				printf("[ERROR] Bad submit answer.\n");
 				continue;
