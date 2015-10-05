@@ -104,12 +104,20 @@ int start_tcp_server(int port, int *socket_fd) {
 					/* remove \n at the end */
 					/*reply_msg[strlen((char *)reply_msg) - 1] = '\0';*/
 
-					printf("\rSending AQT reply \"%s\"\n> ", reply_msg);
+					printf("\rSending AQT reply: %s> ", reply_msg);
+					fflush(stdout);
+					break;
+				}
+				else if (strcmp(parsed_request[0], "RQS") == 0) {
+					reply_msg = AQS_reply("thisISaQID", 1000);
+					printf("\rSending AQS reply: %s> ", reply_msg);
 					fflush(stdout);
 					break;
 				}
 				else{
 					reply_msg = ERR_reply();
+					printf("\rSending ERR reply\n> ");
+					fflush(stdout);
 					break;
 				}
 			}

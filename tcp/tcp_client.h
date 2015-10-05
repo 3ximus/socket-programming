@@ -19,8 +19,7 @@ unsigned char *receive_tcp_reply(int fd, int);
 
 /* --------------------------- */
 
-int start_tcp_client(const char *ip_addr, int port)
-{
+int start_tcp_client(const char *ip_addr, int port){
 	int fd, n;
 	struct sockaddr_in addr;
 
@@ -29,8 +28,7 @@ int start_tcp_client(const char *ip_addr, int port)
 		exit(1);
 
 	/* Atribuicao da socket TCP */
-	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1)
-	{
+	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1){
 		perror("Error: socket()\n");
 		exit(1);
 	}
@@ -42,8 +40,7 @@ int start_tcp_client(const char *ip_addr, int port)
 	addr.sin_port = htons(port);
 
 	/* Initiate a connection on a socket */
-	if((n = connect(fd, (struct sockaddr*)&addr, sizeof(addr)))== -1)
-	{
+	if((n = connect(fd, (struct sockaddr*)&addr, sizeof(addr)))== -1){
 		return -1;
 	}
 	return fd;
@@ -54,10 +51,8 @@ int send_tcp_request(int fd, const unsigned char *request){
 
 	nleft = nbytes;
 
-	while(nleft > 0)
-	{
-		if((nwritten = write(fd, request, nleft)) <= 0)
-		{	
+	while(nleft > 0){
+		if((nwritten = write(fd, request, nleft)) <= 0){	
 			perror("Error: write()\n");
 			exit(1);
 		}
@@ -78,11 +73,9 @@ unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 
 	/* point to the beginning reply */
 	reply_ptr = reply;
-
-	while(1)
-	{
-		if((nread = read(fd, reply_buffer, reply_buff_size)) == -1)
-		{
+ 	
+	while(1){
+		if((nread = read(fd, reply_buffer, reply_buff_size)) == -1){
 			perror("Error: read()\n");
 			exit(1);
 		}

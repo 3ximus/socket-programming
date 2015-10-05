@@ -47,7 +47,7 @@ unsigned char *RQT_request(int, int);
  * Sends the user sid, the questionnarie qid and the answers
  * Reply must be freed on the client
  */
-unsigned char *RQS_request(int, int, char*, char *);
+unsigned char *RQS_request(int, int, char*, char **);
 
 /* REPLIES
  * These are server side functions, only to be called on the server
@@ -83,7 +83,7 @@ unsigned char *AQT_reply(int, const struct tm* delay);
  * Sends the questionnarie qid with the the score obtained
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQS_reply();
+unsigned char *AQS_reply(char*, int);
 
 /*
  * Used to send a ERR reply
@@ -147,10 +147,12 @@ unsigned char *RQT_request(int fd, int sid){
 	return server_reply;
 }
 
-unsigned char *RQS_request(int fd, int sid, char* qid, char *answers){
+unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
+	int n;
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_32] = "RQS ";
-	char char_sid[6];
+	char char_sid[6], sequence[10];
+	memset(sequence, '\0', 10);
 
 	/* convert to strings */
 	sprintf(char_sid, "%d", sid);
@@ -160,7 +162,16 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char *answers){
 	strcat(request, " ");
 	strcat(request, qid);
 	strcat(request, " ");
-	strcat(request, answers);
+
+	/* upper case */
+	for (n = 1; n < CMD_SIZE ;n++){
+		if (parsed_cmd[n][0] > 'D')
+			parsed_cmd[n][0] -= ('a' - 'A');
+		strcat(sequence, parsed_cmd[n]);
+		strcat(sequence, " ");
+	}
+
+	strcat(request, sequence);
 	request[strlen((char *)request) - 1] = '\n';
 	
 	/* send request and wait for reply */
@@ -233,7 +244,7 @@ unsigned char *AWTES_reply(const int topic_number){
 }
 
 unsigned char *AQT_reply(int sid, const struct tm* expiration){
-	char qid_char[5], timestamp[30], timestamp_now[30];
+	char sid_char[5], timestamp[30], timestamp_now[30];
 	time_t now;
 	struct tm *time_struct;
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
@@ -251,8 +262,8 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 	/* convert current time to string format */
 	strftime(timestamp_now, 30, "%d%b%Y_%H:%M:%S", time_struct);
 
-	sprintf(qid_char, "%d", sid);
-	strcat((char *)server_reply, qid_char);
+	sprintf(sid_char, "%d", sid);
+	strcat((char *)server_reply, sid_char);
 	strcat((char *)server_reply, "_");
 	strcat((char *)server_reply, timestamp_now);
 	strcat((char *)server_reply, " ");
@@ -273,6 +284,21 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 
 	/* TODO send pdf size and data */
 
+	strcat((char * )server_reply, "\n");
+	return server_reply;
+}
+
+unsigned char *AQS_reply(char* qid, int score){
+	char score_char[10];
+	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_128 * sizeof(unsigned char));
+	/* zero buffer */
+	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
+	
+	sprintf(score_char, "%d", score);
+	/* build reply */
+	strncpy((char* )server_reply, "AQS ", 4);
+	strcat((char*)server_reply, qid);
+	strcat((char*)server_reply, score_char); /* TODO score*/
 	strcat((char * )server_reply, "\n");
 	return server_reply;
 }

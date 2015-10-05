@@ -224,3 +224,24 @@ int checkSubmitAnswer(char **answ){
 	return 0;
 }
 
+/*
+ * Check a Reply for errors ( Handle ERR and EOF ) agains an expected value
+ * Returns 0 on sucess
+ * Returns 1 if EOF
+ * Returns -1 if anything else is passed or ERR
+ */
+int check_for_errors(const char* original, char* expected){
+	int n;
+	char parsed[7];
+	memset(parsed, '\0', 7);
+	for (n = 0; n < 7; n++)
+		if (original[n] != '\0' && original[n] != '\n' && original[n] != ' ')
+			parsed[n] = original[n];
+		else break;
+	if (strcmp(parsed, expected) == 0)
+		return 0;
+	else if (strcmp(parsed, "EOF") == 0)
+		return 1;
+	else
+		return -1;
+}

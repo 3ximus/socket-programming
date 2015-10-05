@@ -61,6 +61,7 @@ struct server{
 	unsigned int port;
 };
 
+/* tes server structure contains connection info */
 struct tes_server{
 	char qid[30];
 	char ip_addr[16];
@@ -143,5 +144,13 @@ int parse_string(char **, char*, const char*, int);
  * Checks if answer is between A and D (not case sensitive)
  */
 int checkSubmitAnswer(char **answ);
+
+/*
+ * Check a Reply for errors ( Handle ERR and EOF ) agains an expected value
+ * Returns 0 on sucess
+ * Returns 1 if EOF
+ * Returns -1 if anything else is passed or ERR
+ */
+int check_for_errors(const char*, char*);
 
 #endif

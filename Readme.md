@@ -15,11 +15,16 @@ Questionnaire Service:
     > TER format : "TER [topic-number]\n"
     > AWTES format : "AWTES [TES-Server-IP] [TES-Server-Port]\n"
     - Then sends a RQT request and waits for AQT reply
-    > RQT format : "RQT [sid]"
-    > AQT format : "AQT [qid] [time] [size] [data]"
+    > RQT format : "RQT [sid]\n"
+    > AQT format : "AQT [qid] [time] [size] [data]\n"
 
 3. submit
-> TODO
+    - Sends a RQS request and waits for AQS reply:
+    > RQS format: "RQS [answer-sequence]\n"
+    > AQS format: "AQS [qid] [score]\n"
+    *NOTE* Here the server comunicates the score to the ecp server
+    > IQR format : "IQR [sid] [qid] [topic-name] [score]\n"
+    > AWI format : "AWI [qid]\n"
 
 4. help
     - Shows help screen, listing commands and their effects
@@ -46,22 +51,15 @@ Use all xx_reply() functions to build the server replies.
 # To Do:
 - **[HIGH]** adicionar checks em todo o lado para nao haver erros
 > apanhar erros nas funcoes usadas, nao aceder a posicoes de parsed strings que podem nao existir, etc
-- **[HIGH]** Tratar das replyes ERR e EOF
-> Tanto envia-las (server) como analisa-las (user ou client?)
+- **[HIGH]** **Tratar das replyes ERR e EOF** -> IMPORTANTE
+> Tanto envia-las (server) como analisa-las
 - **[HIGH]** Fazer com que o request receba pdf
 > Implica fazer os timestamps nos pedidos e atribuicao dos qid
-- **[HIGH]** Fazer o submit
-- **[MEDIUM]** Arranjar maneira de calcular o offset do pdf na reply, por agora usei um valor precalculado qu nao vai resultar se a reply tiver um tamanho diferente
 - **[MEDIUM]** Fazer timeout nas ligaceos UDP
 - **[LOW]** corrigir parseOpt
-- **[LOW]** corrigir parseString
 
 * * *
 # Bugs:
-- **[HIGH]** nao da para fazer um request sem um list primeiro??
-- **[HIGH]** request nao parece que recebe bem a reply com o pdf, aumentei o tamanho para poder conter o ficheiro mas este nao e passado na totalidade...
-- **[MEDIUM]** a parte do server que esvreve para a socket pode nao estar preparada para enviar o ficheiro pdf
-- **[MEDIUM]** temos de limpar os buffers no cliente / servidor que tem as request e replies porque de vez em quando aparece lixo na mensagem
 - **[MEDIUM]** request com numero invalido (mt grande) fica preso no servidor ecp pq ele fecha a ligacao.
 - **[MEDIUM]** corrigir as funcoes que leem os argumentos para que nao aceitem qualquer opcao (-p -n, etc..)
 

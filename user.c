@@ -39,10 +39,21 @@ int main(int argc, char *argv[]){
 		if(strcmp(parsed_cmd[0],"list") == 0 && parsed_cmd[1] == NULL)
 		{	
 			char **topics = NULL;
-			int i, ntopic;
+			int i, ntopic, err;
 
 			/* Send TQR request */
 			server_reply = TQR_request(udp_socket, &udp_addr);
+			/* check for errors */
+			if ((err = check_for_errors((char *)server_reply, "AWT")) == -1){
+				printf("[ERROR] Didn't receive correct reply\n");
+				free(server_reply);
+				continue;
+			}
+			else if (err == 1){
+				printf("[ERROR] EOF\n");
+				free(server_reply);
+				continue;
+			}
 			topics = parseString((char *)server_reply," ");
 			ntopic = atoi(topics[1]);
 
@@ -60,7 +71,7 @@ int main(int argc, char *argv[]){
 			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
 			unsigned char *server_reply_ptr;
 			char filename[10];
-			char parsed_time[30];
+			/*char parsed_time[30];*/
 			int quest_size, pdf_fd, written_bytes, i, offset = 0;
 
 			if (parsed_cmd[1] == NULL){
@@ -70,13 +81,19 @@ int main(int argc, char *argv[]){
 			}
 			/* receives tes server (containing requested topic) information */
 			server_reply = TER_request(udp_socket, parsed_cmd[1], &udp_addr);
-
-			/* remove '\n' */
-			server_reply[strlen((char *)server_reply) - 1] = '\0';
+			/* check for errors */
+			if (check_for_errors((char *)server_reply, "AWTES") == -1){
+				printf("[ERROR] Didn't receive correct reply\n");
+				free(parsed_reply);
+				free(parsed_reply_2);
+				free(server_reply);
+				continue;
+			}
+			
+			server_reply[strlen((char *)server_reply) - 1] = '\0'; /* remove '\n' */
 			parsed_reply = parseString((char *)server_reply, " \n");
-
-			strcpy(tes_info.ip_addr, parsed_reply[1]);
-			tes_info.port = atoi(parsed_reply[2]);
+			strcpy(tes_info.ip_addr, parsed_reply[1]); /* IP */
+			tes_info.port = atoi(parsed_reply[2]); /* PORT */
 
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/* if the tes server isn't online */
@@ -89,8 +106,18 @@ int main(int argc, char *argv[]){
 
 			/* send RQT request to TES server */
 			server_reply = RQT_request(tcp_socket, sid);
+
+			/* check for errors */
+			if (check_for_errors((char *)server_reply, "AQT") == -1){
+				printf("[ERROR] Didn't receive correct reply\n");
+				free(parsed_reply);
+				free(parsed_reply_2);
+				free(server_reply);
+				continue;
+			}
 			server_reply_ptr = server_reply;
 			parse_string(parsed_reply_2, (char *)server_reply, " ", 4); /* again size is 4 due to reply format */
+
 			strcpy(tes_info.qid, parsed_reply_2[1]); /* QID */
 			strncpy(tes_info.time_limit, parsed_reply_2[2], 30); /* TIME */
 			quest_size = atoi(parsed_reply_2[3]); /* SIZE */
@@ -123,10 +150,6 @@ int main(int argc, char *argv[]){
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
-			char sequence[10];
-			int n;
-			memset(sequence, '\0', 10);
-
 			/* test if we have made a request before */
 			if (tes_info.qid == NULL || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
@@ -136,20 +159,16 @@ int main(int argc, char *argv[]){
 				printf("[ERROR] Bad submit answer.\n");
 				continue;
 			}
-			for (n=1; n<CMD_SIZE;n++){
-				if (parsed_cmd[n][0] > 'D')
-					parsed_cmd[n][0] -= ('a' - 'A');
-				strcat(sequence, parsed_cmd[n]);
-				strcat(sequence, " ");
-			}
-
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/*if the tes server isn't online */
 				perror("[ERROR] There is no TES server on that port.\n");
 				continue;
 			}
-			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, sequence);
-			printf("%s\n", server_reply);
+			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, parsed_cmd);
+			if (check_for_errors((char *)server_reply, "AWTES") == -1){
+				printf("[ERROR] Didn't receive correct reply\n");
+				continue;
+			}
 			close(tcp_socket);
 		}
 
