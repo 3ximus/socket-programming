@@ -244,10 +244,17 @@ unsigned char *AWTES_reply(const int topic_number){
 }
 
 unsigned char *AQT_reply(int sid, const struct tm* expiration){
-	char sid_char[5], timestamp[30], timestamp_now[30];
+	char sid_char[5], timestamp[30], timestamp_now[30], size_char[6];
 	time_t now;
+	int fd;
+	/*size_t len = 0;*/
+	ssize_t bytes_read, quest_size = 0;
+	char read_buffer[REPLY_BUFFER_OVER_9000];
 	struct tm *time_struct;
-	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char));
+	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char)),
+				  *server_reply_ptr = NULL,
+				  placeholder[REPLY_BUFFER_OVER_9000],
+				  *placeholder_ptr = NULL;
 	/* zero buffer */
 	memset((void *)server_reply,'\0', REPLY_BUFFER_OVER_9000);
 	memset((void *)timestamp,'\0', 30);
@@ -263,6 +270,7 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 	strftime(timestamp_now, 30, "%d%b%Y_%H:%M:%S", time_struct);
 
 	sprintf(sid_char, "%d", sid);
+	/* qid */
 	strcat((char *)server_reply, sid_char);
 	strcat((char *)server_reply, "_");
 	strcat((char *)server_reply, timestamp_now);
@@ -278,13 +286,36 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 	time_struct->tm_min = time_struct->tm_min % 60;
 	time_struct->tm_hour = time_struct->tm_hour % 24;
 
-	/* convert current time to string format */
+	/* convert current time to string format and add it to the server reply*/
 	strftime(timestamp, 30, "%d%b%Y_%H:%M:%S", time_struct);
 	strcat((char *)server_reply, timestamp);
+	strcat((char *)server_reply, " ");
 
-	/* TODO send pdf size and data */
+	/* read file */
+	if ((fd = open("2015_2016_Proj_SocketProg.pdf", O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
+		/* handle error */
+		perror("[ERROR] Opening .pdf file\n");
+		exit(-1);
+	}
+	placeholder_ptr = placeholder;
+	while ((bytes_read = read(fd, read_buffer, REPLY_BUFFER_OVER_9000)) > 0){
+		memcpy(placeholder_ptr, read_buffer, bytes_read);
+		placeholder_ptr += bytes_read; /* move pointer */
+		quest_size += bytes_read; /* increment size counter */
+	}
 
+	/* concatenate size */
+	sprintf(size_char, "%d", (int)quest_size);
+	strcat((char *)server_reply, size_char);
+	strcat((char *)server_reply, " ");
+
+	/* pdf content */
+	server_reply_ptr = server_reply + strlen((char *)server_reply); /* pointer to the end of the server reply string */
+	memcpy(server_reply_ptr, placeholder, quest_size);
+
+	/* finish reply */
 	strcat((char * )server_reply, "\n");
+	close(fd);
 	return server_reply;
 }
 

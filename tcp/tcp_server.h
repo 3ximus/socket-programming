@@ -110,7 +110,7 @@ int start_tcp_server(int port, int *socket_fd) {
 				}
 				else if (strcmp(parsed_request[0], "RQS") == 0) {
 					reply_msg = AQS_reply("thisISaQID", 1000);
-					printf("\rSending AQS reply: %s> ", reply_msg);
+					printf("\rSending AQS reply: TOO BIG TO SHOW > ");
 					fflush(stdout);
 					break;
 				}
@@ -124,7 +124,8 @@ int start_tcp_server(int port, int *socket_fd) {
 			/* point to begining of reply */
 			reply_ptr = reply_msg;
 			/* set number of bytes of reply */
-			n = strlen((char*)reply_msg);
+			/*n = strlen((char*)reply_msg);*/
+			n = REPLY_BUFFER_OVER_9000; /* testing */
 			while(n > 0)
 			{	
 				if((nw = write(newfd, reply_ptr, n)) <= 0)
