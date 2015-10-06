@@ -16,8 +16,9 @@ void sigterm_handler(int x){
 }
 
 int start_tcp_server(int port, int *socket_fd) {
-	int fd, newfd, addrlen, n, nw, child_pid = 0;
-	char received_buffer[BUFFER_32];
+	int fd, newfd, addrlen, bytes_read, bytes_written, bytes_to_write = 0, child_pid = 0;
+	char received_buffer[REQUEST_BUFFER_64];
+	char request[REQUEST_BUFFER_64], *request_ptr;
 	unsigned char *reply_ptr;
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;
@@ -72,27 +73,31 @@ int start_tcp_server(int port, int *socket_fd) {
 				printf("Error: accept()\n");
 				exit(1);
 			}
+			/* set in the begining */
+			memset(request, '\0', REQUEST_BUFFER_64);
+			request_ptr = request;
 
-			while((n = read(newfd,received_buffer,BUFFER_32)) != 0){
-				if(n == -1)
-				{
+			/* reading cycle */
+			while((bytes_read = read(newfd, received_buffer, REQUEST_BUFFER_64)) != 0){
+				if(bytes_read == -1){
 					perror("Error: read()\n");
 					exit(1);
 				}
-				
+				memcpy(request_ptr, received_buffer, bytes_read);
+				request_ptr += bytes_read;
+
 				/* parsed received buffer */
-				parsed_request = parseString(received_buffer, "\n");
-				parsed_request = parseString(received_buffer, " ");
+				fflush(stdout);
+				parsed_request = parseString(request, "\n");
+				parsed_request = parseString(request, " ");
 
 				/* Print request */
-				printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr),
-				 ntohs(addr.sin_port));
+				printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 				fflush(stdout);
 
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){
 					struct tm expiration_time;
-
 					memset((void *)&expiration_time, 0, sizeof(struct tm));
 
 					/* set expiration time */
@@ -100,41 +105,44 @@ int start_tcp_server(int port, int *socket_fd) {
 
 					/* TODO PASS CORRECT QID AND TIME DELAY*/
 					reply_msg = AQT_reply(76959, (const struct tm *)&expiration_time);
-
-					/* remove \n at the end */
-					/*reply_msg[strlen((char *)reply_msg) - 1] = '\0';*/
-
-					printf("\rSending AQT reply: %s> ", reply_msg);
+					bytes_to_write = REPLY_BUFFER_OVER_9000;
+					printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
 					fflush(stdout);
 					break;
 				}
 				else if (strcmp(parsed_request[0], "RQS") == 0) {
+					/* TODO Calculate score */
 					reply_msg = AQS_reply("thisISaQID", 1000);
-					printf("\rSending AQS reply: TOO BIG TO SHOW > ");
+					bytes_to_write = REPLY_BUFFER_32;
+					printf("\rSending AQS reply: %s\n> ", reply_msg);
 					fflush(stdout);
+
+					/* TODO comunicate with ecp_server */
+
 					break;
 				}
 				else{
 					reply_msg = ERR_reply();
+					bytes_to_write = 5;
 					printf("\rSending ERR reply\n> ");
 					fflush(stdout);
 					break;
 				}
 			}
+
 			/* point to begining of reply */
 			reply_ptr = reply_msg;
-			/* set number of bytes of reply */
-			/*n = strlen((char*)reply_msg);*/
-			n = REPLY_BUFFER_OVER_9000; /* testing */
-			while(n > 0)
+
+			/* writing cycle */
+			while(bytes_to_write > 0)
 			{	
-				if((nw = write(newfd, reply_ptr, n)) <= 0)
+				if((bytes_written = write(newfd, reply_ptr, bytes_to_write)) <= 0)
 				{
 					perror("Error: write()\n");
 					exit(1);
 				}
-				n -= nw;
-				reply_ptr += nw;
+				bytes_to_write -= bytes_written;
+				reply_ptr += bytes_written;
 			}
 			free(reply_msg);
 			free(parsed_request);

@@ -150,6 +150,7 @@ int main(int argc, char *argv[]){
 		}
 
 		else if (strcmp(parsed_cmd[0],"submit") == 0){
+			char **parsed_reply = (char **)malloc(4 * sizeof(char *));
 			/* test if we have made a request before */
 			if (tes_info.qid == NULL || tes_info.ip_addr == NULL || tes_info.port == 0){
 				printf("[ERROR] No request was made before.\n");
@@ -157,18 +158,26 @@ int main(int argc, char *argv[]){
 			}
 			if(checkSubmitAnswer(parsed_cmd) == -1) {
 				printf("[ERROR] Bad submit answer.\n");
+				free(parsed_reply);
 				continue;
 			}
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/*if the tes server isn't online */
 				perror("[ERROR] There is no TES server on that port.\n");
+				free(parsed_reply);
 				continue;
 			}
 			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, parsed_cmd);
-			if (check_for_errors((char *)server_reply, "AWTES") == -1){
-				printf("[ERROR] Didn't receive correct reply\n");
+			if (check_for_errors((char *)server_reply, "AQS") == -1){
+				printf("Wrong answer\n");
+				free(parsed_reply);
 				continue;
 			}
+			parse_string(parsed_reply, (char *)server_reply, " ", 4);
+
+			printf("Score of QID: %s is %s", parsed_reply[1], parsed_reply[2]);
+
+			free(parsed_reply);
 			close(tcp_socket);
 		}
 

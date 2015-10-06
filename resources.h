@@ -37,7 +37,9 @@
 #define REPLY_BUFFER_OVER_9000 2000000
 #define REPLY_BUFFER_1024 1024
 #define REPLY_BUFFER_128 128
+#define REPLY_BUFFER_32 32
 #define REQUEST_BUFFER_32 32
+#define REQUEST_BUFFER_64 64
 #define CMD_SIZE 6
 
 /* Maximum number of topics */

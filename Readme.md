@@ -49,12 +49,9 @@ Use all xx_reply() functions to build the server replies.
 * * *
 
 # To Do:
+- **[HIGH]** finalizar o submit no server, checkando as respostas submetidas e comunicando com o ECP
 - **[HIGH]** adicionar checks em todo o lado para nao haver erros
 > apanhar erros nas funcoes usadas, nao aceder a posicoes de parsed strings que podem nao existir, etc
-- **[HIGH]** **Tratar das replyes ERR e EOF** -> IMPORTANTE
-> Tanto envia-las (server) como analisa-las
-- **[HIGH]** Fazer com que o request receba pdf
-> Implica fazer os timestamps nos pedidos e atribuicao dos qid
 - **[MEDIUM]** Fazer timeout nas ligaceos UDP
 - **[LOW]** corrigir parseOpt
 

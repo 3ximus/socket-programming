@@ -329,6 +329,7 @@ unsigned char *AQS_reply(char* qid, int score){
 	/* build reply */
 	strncpy((char* )server_reply, "AQS ", 4);
 	strcat((char*)server_reply, qid);
+	strcat((char*)server_reply, " ");
 	strcat((char*)server_reply, score_char); /* TODO score*/
 	strcat((char * )server_reply, "\n");
 	return server_reply;
