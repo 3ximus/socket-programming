@@ -81,7 +81,7 @@ void printHostInfo(struct sockaddr_in addr){
  */
 char *readFromFile(const char *file_name){
 	int fd, bytes_read = 100;
-	char read_buffer[100];
+	char read_buffer[200];
 	char *accumulator_buffer = (char *) malloc(BUFFER_2048 * sizeof(char ));
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
@@ -91,7 +91,7 @@ char *readFromFile(const char *file_name){
 		exit(-1);
 	}
 	/* while EOF isnt reached */
-	while((bytes_read = read(fd, read_buffer, 100)) > 0){
+	while((bytes_read = read(fd, read_buffer, 200)) > 0){
 		/* build file content on the accumulator */
 		strcat(accumulator_buffer, read_buffer);
 	}
@@ -244,4 +244,28 @@ int check_for_errors(const char* original, char* expected){
 		return 1;
 	else
 		return -1;
+}
+
+/* 
+ * Calculate the score of a given answer
+ */
+int calculate_score(int topic, int internal_qid, char **parsed_request){
+	int c = 0, score = 0;
+	FILE* fd;
+	size_t len = 0;
+	char path[BUFFER_32], *read_buffer = NULL;
+
+	sprintf(path, "quest/%d/T%dQ%dA.txt", topic, topic, internal_qid);
+	if ((fd = fopen(path, "r")) == NULL){
+		perror("[ERROR] File not found.");
+		exit(1);
+	}
+	getline(&read_buffer, &len, fd);
+	for (c = 0; c < 5; c++)
+		if (parsed_request[c][0] == read_buffer[c*2])
+			score += 200;
+
+	free(read_buffer);
+	fclose(fd);
+	return score;
 }

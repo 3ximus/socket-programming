@@ -65,10 +65,19 @@ struct server{
 
 /* tes server structure contains connection info */
 struct tes_server{
-	char qid[30];
+	char qid[BUFFER_32];
 	char ip_addr[16];
 	int port;
-	char time_limit[30];
+	char time_limit[BUFFER_32];
+};
+
+/* tes server user-quest table */
+struct user_table{
+	int sid;
+	time_t deadline;
+	int score;
+	char qid[BUFFER_32];
+	int internal_qid;
 };
 
 /* -------------------------------- */
@@ -154,5 +163,10 @@ int checkSubmitAnswer(char **answ);
  * Returns -1 if anything else is passed or ERR
  */
 int check_for_errors(const char*, char*);
+
+/* 
+ * Calculate the score of a given answer
+ */
+int calculate_score(int, int, char **);
 
 #endif

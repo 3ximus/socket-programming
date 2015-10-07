@@ -168,7 +168,9 @@ int main(int argc, char *argv[]){
 				free(parsed_reply);
 				continue;
 			}
+
 			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, parsed_cmd);
+
 			if (check_for_errors((char *)server_reply, "AQS") == -1){
 				printf("Wrong answer\n");
 				free(parsed_reply);
