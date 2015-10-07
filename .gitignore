@@ -4,3 +4,4 @@ tes_server_interface
 ecp_server.log
 tes_server.log
 *2015*.pdf
+*.dSYM
