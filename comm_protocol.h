@@ -116,7 +116,7 @@ unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
 
 unsigned char *TER_request(int fd, const char *topic_number, const struct sockaddr_in* addr){
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_32] = "TER ";
+	char request[REQUEST_BUFFER_32];
 	char *endptr;
 
 	/* check if topic_number is in fact a number and is between 0 and TOPIC_NR (99) */
@@ -125,10 +125,8 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 	if (endptr == topic_number || val < 1 || val > TOPIC_NR)
 		printf("[ERROR] Request with no valid number\n");
 
-	/* attach topic number to request */
-	strncat(request, topic_number, 6);
-	/* terminate request */
-	strncat(request, "\n", 1);
+	/* build request */
+	sprintf(request, "TER %s\n", topic_number);
 
 	/* contact server with built request */
 	send_udp_request(fd, (unsigned char *)request, addr);
@@ -138,13 +136,10 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 
 unsigned char *RQT_request(int fd, int sid){
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_32] = "RQT ";
-	char char_sid[6];
+	char request[REQUEST_BUFFER_32];
 
-	/* convert sid to a char */
-	sprintf(char_sid, "%d", sid);
-	strcat(request, char_sid);
-	strcat(request, "\n");
+	/* build request */
+	sprintf(request, "RQT %d\n", sid);
 
 	/* send request */
 	send_tcp_request(fd, (unsigned char*)request);
@@ -157,18 +152,11 @@ unsigned char *RQT_request(int fd, int sid){
 unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	int n;
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_32] = "RQS ";
-	char char_sid[6], sequence[10];
-	memset(sequence, '\0', 10);
-
-	/* convert to strings */
-	sprintf(char_sid, "%d", sid);
+	char request[REQUEST_BUFFER_32], sequence[10];
+	memset(sequence, '\0', sizeof(sequence));
 
 	/* build request */
-	strcat(request, char_sid);
-	strcat(request, " ");
-	strcat(request, qid);
-	strcat(request, " ");
+	sprintf(request, "RQS %d %s ", sid,qid);
 
 	/* upper case */
 	for (n = 1; n < CMD_SIZE ;n++){
@@ -184,6 +172,7 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	/* send request and wait for reply */
 	send_tcp_request(fd, (unsigned char*)request);
 	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_128);
+
 	return server_reply;
 }
 
@@ -191,6 +180,7 @@ unsigned char *IQR_request(int fd, const struct sockaddr_in* addr, int sid, char
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_64];
 
+	/* build request */
 	sprintf(request,"IQR %d %s %d %d\n", sid,qid,topic,score);
 
 	/* contact server with built request */
