@@ -93,10 +93,19 @@ unsigned char *AQT_reply(int, const struct tm* delay, char *qid);
 unsigned char *AQS_reply(char*, int);
 
 /*
+ * Used to reply a IQR request
+ * The ECP confirms having received information 
+ * about the results of questionnaire QID.
+ */
+unsigned char *AWI_reply(char*);
+
+/*
  * Used to send a ERR reply
  * Creates and returns the reply
  */
 unsigned char *ERR_reply();
+
+
 
 /* ------------------------------------------- */
 
@@ -338,6 +347,15 @@ unsigned char *AQS_reply(char* qid, int score){
 	/* build reply */
 	sprintf((char * )server_reply, "AQS %s %d\n",qid,score);
 	
+	return server_reply;
+}
+
+unsigned char *AWI_reply(char* qid){
+	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_128 * sizeof(unsigned char));
+	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
+
+	sprintf((char * )server_reply, "AWI %s\n",qid);	
+
 	return server_reply;
 }
 

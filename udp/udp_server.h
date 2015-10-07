@@ -20,7 +20,6 @@ int start_udp_server(int, int*);
 /* Handle SIGTERM */
 void sigterm_handler(int x){
 	printf("[SERVER_MSG] Arrrhhh!!! You killed me with signal %d!!!\n", x);
-
 	exit(0);
 }
 
@@ -82,33 +81,27 @@ int start_udp_server(int port, int *socket_fd){
 		/* parsed received buffer */
 		parsed_request = parseString(received_buffer, "\n");
 		parsed_request = parseString(received_buffer, " ");
-
 		
 		/* Print request */
 		printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-		fflush(stdout);
-		
+		fflush(stdout);	
 
 		if(strcmp(parsed_request[0],"TQR") == 0){		
 			reply_msg = AWT_reply();
-			
-			/* remove \n at the end */
-			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
-			
-			printf("\rSending AWT reply \"%s\"\n> ", reply_msg);
+			printf("\rSending AWT reply %s> ", reply_msg);
 			fflush(stdout);
 		}
 		else if (strcmp(parsed_request[0], "TER") == 0){
 			int topic_nr = atoi(parsed_request[1]);
-
 			reply_msg = AWTES_reply(topic_nr);
-
-			/* remove \n at the end */
-			reply_msg[strlen((char *)reply_msg) - 1] = '\0';
-
-			printf("\rSending AWTES reply \"%s\"\n> ", reply_msg);
+			printf("\rSending AWTES reply %s> ", reply_msg);
 			fflush(stdout);
-
+		}
+		else if (strcmp(parsed_request[0], "IQR") == 0){
+			char *qid = parsed_request[2];
+			reply_msg = AWI_reply(qid);
+			printf("\rSending AWI reply %s> ", reply_msg);
+			fflush(stdout);
 		}
 		else
 			reply_msg = ERR_reply();
