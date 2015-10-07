@@ -86,7 +86,6 @@ int start_tcp_server(int port, int *socket_fd) {
 				memcpy(request_ptr, received_buffer, bytes_read);
 				request_ptr += bytes_read;
 				
-
 				/* parse request */
 				parse_string(parsed_request, request, " \n", 10);
 
@@ -102,8 +101,7 @@ int start_tcp_server(int port, int *socket_fd) {
 					/* set expiration time */
 					user_info->deadline = now + 600; /* time now + 10 minutes */
 					user_info->sid = atoi(parsed_request[1]);
-
-					reply_msg = AQT_reply(user_info, now);
+					reply_msg = AQT_reply(user_info, now, topic);
 					bytes_to_write = REPLY_BUFFER_OVER_9000;
 					printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
 					fflush(stdout);
@@ -127,9 +125,9 @@ int start_tcp_server(int port, int *socket_fd) {
 					}
 					if (user_info->deadline < now)
 						user_info->score = -1; /* deadline missed */
-					else {
-						user_info->score = calculate_score(topic);
-					}
+					else 
+						user_info->score = calculate_score(topic, user_info->internal_qid, parsed_request);
+
 					reply_msg = AQS_reply(user_info->qid, user_info->score);
 					bytes_to_write = REPLY_BUFFER_32;
 					printf("\rSending AQS reply: %s> ", reply_msg);
@@ -175,7 +173,8 @@ int start_tcp_server(int port, int *socket_fd) {
 			}
 			free(reply_msg);
 			close(newfd);
-		}	
+		}
+		free(user_info);
 	}
 	free(parsed_request);
 	/* This is left in here just in case, because socket is closed on the ecp_server_interface */

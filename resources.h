@@ -164,4 +164,9 @@ int checkSubmitAnswer(char **answ);
  */
 int check_for_errors(const char*, char*);
 
+/* 
+ * Calculate the score of a given answer
+ */
+int calculate_score(int, int, char **);
+
 #endif

@@ -83,7 +83,7 @@ unsigned char *AWTES_reply(const int topic_number);
  *  timestamp of the request
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQT_reply(struct user_table*, time_t);
+unsigned char *AQT_reply(struct user_table*, time_t, int);
 
 /*
  * Used to reply to a RQS request
@@ -274,8 +274,8 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(struct user_table* user_info, time_t now){
-	char timestamp_deadline[BUFFER_32], timestamp_now[BUFFER_32];
+unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
+	char timestamp_deadline[BUFFER_32], timestamp_now[BUFFER_32], path[BUFFER_32];
 	struct tm *t_struct_now = (struct tm*)malloc(sizeof(struct tm)),
 			 *t_struct_deadline = (struct tm *)malloc(sizeof(struct tm));
 	int fd;
@@ -292,21 +292,20 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now){
 
 	/* set time struct with current time*/
 	localtime_r((const time_t *)&now, t_struct_now);
-	localtime_r((const time_t *)user_info->deadline, t_struct_deadline);
+	localtime_r((const time_t *)&user_info->deadline, t_struct_deadline);
 	/* convert time to string format, creating the timestamps */
 	strftime(timestamp_now, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_now);
 	strftime(timestamp_deadline, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_deadline);
 
-	printf("now %s\n", timestamp_now);
-	printf("deadline %s\n", timestamp_deadline);
-
 	sprintf(user_info->qid, "%d_%s",user_info->sid, timestamp_now); /* export qid */
 
+	/* TODO use a random here */
+	user_info->internal_qid = 1;
+
 	/* read file */
-
-	/* TODO select user_info->internal_qid with a random function */
-
-	if ((fd = open("2015_2016_Proj_SocketProg.pdf", O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
+	sprintf(path, "quest/%d/T%dQ%d.pdf", topic, topic, user_info->internal_qid);
+	printf("path: %s\n", path);
+	if ((fd = open(path, O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
 		/* handle error */
 		perror("[ERROR] Opening .pdf file\n");
 		exit(-1);
