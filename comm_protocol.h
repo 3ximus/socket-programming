@@ -236,19 +236,15 @@ unsigned char* AWT_reply(){
 }
 
 unsigned char *AWTES_reply(const int topic_number){
-	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_128* sizeof(unsigned char));
 	char *file_content;
-
+	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_128* sizeof(unsigned char));
 	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
 
-	strncpy((char *)server_reply, "AWTES ", 6);
-
 	/* TODO verify valid topic */
-	
 	file_content = findTopic(topic_number);
 
-	strcat((char *)server_reply, file_content);
-	strcat((char *)server_reply, "\n");
+	/* build reply */
+	sprintf((char *) server_reply, "AWTES %s\n",file_content);
 
 	free(file_content);
 	return server_reply;
@@ -336,18 +332,11 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration, char *qid){
 }
 
 unsigned char *AQS_reply(char* qid, int score){
-	char score_char[10];
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_128 * sizeof(unsigned char));
-	/* zero buffer */
 	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
-	
-	sprintf(score_char, "%d", score);
+
 	/* build reply */
-	strncpy((char* )server_reply, "AQS ", 4);
-	strcat((char*)server_reply, qid);
-	strcat((char*)server_reply, " ");
-	strcat((char*)server_reply, score_char); /* TODO score*/
-	strcat((char * )server_reply, "\n");
+	sprintf((char * )server_reply, "AQS %s %d\n",qid,score);
 	
 	return server_reply;
 }
