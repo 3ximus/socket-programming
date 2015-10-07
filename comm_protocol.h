@@ -83,7 +83,7 @@ unsigned char *AWTES_reply(const int topic_number);
  *  timestamp of the request
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQT_reply(int, time_t, time_t, char *);
+unsigned char *AQT_reply(struct user_table*, time_t);
 
 /*
  * Used to reply to a RQS request
@@ -274,15 +274,16 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(int sid, time_t now, time_t deadline, char *qid){
+unsigned char *AQT_reply(struct user_table* user_info, time_t now){
 	char timestamp_deadline[BUFFER_32], timestamp_now[BUFFER_32];
-	struct tm *t_struct_now, *t_struct_deadline;
+	struct tm *t_struct_now = (struct tm*)malloc(sizeof(struct tm)),
+			 *t_struct_deadline = (struct tm *)malloc(sizeof(struct tm));
 	int fd;
 	ssize_t bytes_read, quest_size = 0;
 	char read_buffer[REPLY_BUFFER_OVER_9000];
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char)),
+				   placeholder[REPLY_BUFFER_OVER_9000],
 				  *server_reply_ptr = NULL,
-				  placeholder[REPLY_BUFFER_OVER_9000],
 				  *placeholder_ptr = NULL;
 	/* zero buffer */
 	memset((void *)server_reply,'\0', REPLY_BUFFER_OVER_9000);
@@ -290,15 +291,21 @@ unsigned char *AQT_reply(int sid, time_t now, time_t deadline, char *qid){
 	memset((void *)timestamp_deadline,'\0', BUFFER_32);
 
 	/* set time struct with current time*/
-	t_struct_now = localtime((const time_t *)&now);
-	t_struct_deadline = localtime((const time_t *)&deadline);
+	localtime_r((const time_t *)&now, t_struct_now);
+	localtime_r((const time_t *)user_info->deadline, t_struct_deadline);
 	/* convert time to string format, creating the timestamps */
 	strftime(timestamp_now, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_now);
 	strftime(timestamp_deadline, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_deadline);
 
-	sprintf(qid, "%d_%s",sid, timestamp_now); /* export qid */
+	printf("now %s\n", timestamp_now);
+	printf("deadline %s\n", timestamp_deadline);
+
+	sprintf(user_info->qid, "%d_%s",user_info->sid, timestamp_now); /* export qid */
 
 	/* read file */
+
+	/* TODO select user_info->internal_qid with a random function */
+
 	if ((fd = open("2015_2016_Proj_SocketProg.pdf", O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
 		/* handle error */
 		perror("[ERROR] Opening .pdf file\n");
@@ -310,9 +317,8 @@ unsigned char *AQT_reply(int sid, time_t now, time_t deadline, char *qid){
 		placeholder_ptr += bytes_read; /* move pointer */
 		quest_size += bytes_read; /* increment size counter */
 	}
-
 	/* build reply */
-	sprintf((char *)server_reply, "AQT %d_%s %s %d ", sid, timestamp_now, timestamp_deadline, (int)quest_size);
+	sprintf((char *)server_reply, "AQT %d_%s %s %d ", user_info->sid, timestamp_now, timestamp_deadline, (int)quest_size);
 
 	/* pdf content */
 	server_reply_ptr = server_reply + strlen((char *)server_reply); /* pointer to the end of the server reply string */

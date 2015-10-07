@@ -74,8 +74,10 @@ struct tes_server{
 /* tes server user-quest table */
 struct user_table{
 	int sid;
-	char deadline[BUFFER_32];
+	time_t deadline;
 	int score;
+	char qid[BUFFER_32];
+	int internal_qid;
 };
 
 /* -------------------------------- */

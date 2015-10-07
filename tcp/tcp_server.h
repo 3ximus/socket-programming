@@ -16,15 +16,11 @@ void sigterm_handler(int x){
 }
 
 int start_tcp_server(int port, int *socket_fd) {
-	int fd, newfd, addrlen, bytes_read, bytes_written, bytes_to_write = 0, child_pid = 0;
-	char received_buffer[REQUEST_BUFFER_64], qid[BUFFER_32], request[REQUEST_BUFFER_64], *request_ptr;
-	unsigned char *reply_ptr;
-	unsigned char *reply_msg = NULL; /* must be freed */
-	struct sockaddr_in addr;
-	int sid, topic;
+	int fd, newfd, addrlen, bytes_read, bytes_written, bytes_to_write = 0, child_pid = 0, topic;
+	char received_buffer[REQUEST_BUFFER_64], request[REQUEST_BUFFER_64], *request_ptr;
 	char **parsed_request = (char **)malloc(sizeof(char *) * 10); /* must be freed */
-
-	memset(qid, '\0', BUFFER_32);
+	unsigned char *reply_ptr, *reply_msg = NULL; /* must be freed */
+	struct sockaddr_in addr;
 
 	/* TCP socket atribution create an endpoint for TCP communication. */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1) {
@@ -65,7 +61,7 @@ int start_tcp_server(int port, int *socket_fd) {
 
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
-		/*struct user_table *user_info = (struct user_table *)malloc(sizeof(struct user_table));*/
+		struct user_table *user_info = (struct user_table *)malloc(sizeof(struct user_table));
 
 		while(1) {
 			addrlen = sizeof(addr);
@@ -100,14 +96,14 @@ int start_tcp_server(int port, int *socket_fd) {
 
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){
-					time_t now, deadline;
+					time_t now;
 					time(&now);
 
 					/* set expiration time */
-					deadline = now + 600; /* time now + 10 minutes */
-					sid = atoi(parsed_request[1]);
+					user_info->deadline = now + 600; /* time now + 10 minutes */
+					user_info->sid = atoi(parsed_request[1]);
 
-					reply_msg = AQT_reply(sid, now, deadline, qid);
+					reply_msg = AQT_reply(user_info, now);
 					bytes_to_write = REPLY_BUFFER_OVER_9000;
 					printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
 					fflush(stdout);
@@ -117,24 +113,24 @@ int start_tcp_server(int port, int *socket_fd) {
 					unsigned char *server_reply = NULL;
 					struct sockaddr_in udp_addr;
 					struct server ecp_server;
-					int score, udp_fd;
-					/* check if sid and qid dont match */
+					int udp_fd;
+					time_t now;
+					time(&now);
 
-					if (sid != atoi(parsed_request[1]) && strcmp(parsed_request[2], qid) != 0){
+					/* check if sid and qid dont match */
+					if (user_info->sid != atoi(parsed_request[1]) && strcmp(parsed_request[2], user_info->qid) != 0){
 						reply_msg = ERR_reply();
 						bytes_to_write = 5;
 						printf("\rSending ERR reply\n> ");
 						fflush(stdout);
 						break;
 					}
-					
-					if (1 /* deadline */)
-						score = -1;
+					if (user_info->deadline < now)
+						user_info->score = -1; /* deadline missed */
 					else {
-						score = 1000;
+						user_info->score = calculate_score(topic);
 					}
-				
-					reply_msg = AQS_reply(qid, score);
+					reply_msg = AQS_reply(user_info->qid, user_info->score);
 					bytes_to_write = REPLY_BUFFER_32;
 					printf("\rSending AQS reply: %s> ", reply_msg);
 					fflush(stdout);
@@ -148,10 +144,10 @@ int start_tcp_server(int port, int *socket_fd) {
 					/* contact ecp */
 					printf("\rSending IQR request\n> ");
 					fflush(stdout);
-					server_reply = IQR_request(udp_fd, &udp_addr, sid, qid, topic, score);
+					server_reply = IQR_request(udp_fd, &udp_addr, user_info->sid, user_info->qid, topic, user_info->score);
 
 					free(server_reply);
-					
+					close(udp_fd);
 					break;
 				}
 				else{
