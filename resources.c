@@ -253,24 +253,18 @@ int calculate_score(int topic, int internal_qid, char **parsed_request){
 	int c = 0, score = 0;
 	FILE* fd;
 	size_t len = 0;
-	char path[BUFFER_32], *read_buffer = NULL, **file_parsed = (char **)malloc(sizeof(char *));
+	char path[BUFFER_32], *read_buffer = NULL;
 
 	sprintf(path, "quest/%d/T%dQ%dA.txt", topic, topic, internal_qid);
-	printf("%s\n", path);
 	if ((fd = fopen(path, "r")) == NULL){
 		perror("[ERROR] File not found.");
 		exit(1);
 	}
-	printf("hello\n");
 	getline(&read_buffer, &len, fd);
-	parse_string(file_parsed, read_buffer, " \n", 5);
-
-	printf("%s\n", read_buffer);
 	for (c = 0; c < 5; c++)
-		if (parsed_request[c] == file_parsed[c])
+		if (parsed_request[c][0] == read_buffer[c*2])
 			score += 200;
 
-	/*free(file_parsed);*/
 	free(read_buffer);
 	fclose(fd);
 	return score;
