@@ -134,6 +134,7 @@ int main(int argc, char *argv[]){
 				perror("[ERROR] Opening topics.txt file\n");
 				free(parsed_reply);
 				free(parsed_reply_2);
+				free(server_reply);
 				exit(-1);
 			}
 			/* calculate offset */
@@ -171,12 +172,12 @@ int main(int argc, char *argv[]){
 			if (check_for_errors((char *)server_reply, "AQS") == -1){
 				printf("Wrong answer\n");
 				free(parsed_reply);
+				free(server_reply);
 				continue;
 			}
 			parse_string(parsed_reply, (char *)server_reply, " ", 4);
 
 			printf("Score of QID: %s is %s", parsed_reply[1], parsed_reply[2]);
-
 			free(parsed_reply);
 			close(tcp_socket);
 		}

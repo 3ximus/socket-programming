@@ -49,6 +49,13 @@ unsigned char *RQT_request(int, int);
  */
 unsigned char *RQS_request(int, int, char*, char **);
 
+/*
+ * Used to contact ECP server with score information
+ * Sends the user sid, the questionnarie qid, the topic nr and the score obtained
+ * Reply must be freed on the client
+ */
+unsigned char *IQR_request(int , const struct sockaddr_in* , int , char* , int , int );
+
 /* REPLIES
  * These are server side functions, only to be called on the server
  */
@@ -76,7 +83,7 @@ unsigned char *AWTES_reply(const int topic_number);
  *  timestamp of the request
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQT_reply(int, const struct tm* delay);
+unsigned char *AQT_reply(int, const struct tm* delay, char *qid);
 
 /*
  * Used to reply to a RQS request
@@ -179,6 +186,30 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_128);
 	return server_reply;
 }
+
+unsigned char *IQR_request(int fd, const struct sockaddr_in* addr, int sid, char* qid, int topic, int score){
+	unsigned char *server_reply = NULL;
+	char request[REQUEST_BUFFER_64] = "IQR ", sid_char[6], topic_char[3], score_char[6];
+
+	sprintf(sid_char, "%d", sid);
+	sprintf(topic_char, "%d", topic);
+	sprintf(score_char, "%d", score);
+	strcat(request, sid_char);
+	strcat(request, " ");
+	strcat(request, qid);
+	strcat(request, " ");
+	strcat(request, topic_char);
+	strcat(request, " ");
+	strcat(request, score_char);
+	strcat(request, "\n");
+
+	/* contact server with built request */
+	send_udp_request(fd, (unsigned char *)request, addr);
+	server_reply = receive_udp_reply(fd, addr);
+	return server_reply;
+}
+
+
 /* ----- REPLIES -------- */
 
 
@@ -243,7 +274,7 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(int sid, const struct tm* expiration){
+unsigned char *AQT_reply(int sid, const struct tm* expiration, char *qid){
 	char sid_char[5], timestamp[30], timestamp_now[30], size_char[6];
 	time_t now;
 	int fd;
@@ -275,6 +306,11 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration){
 	strcat((char *)server_reply, "_");
 	strcat((char *)server_reply, timestamp_now);
 	strcat((char *)server_reply, " ");
+
+	/* export qid */
+	strcat(qid, sid_char);
+	strcat(qid, "_");
+	strcat(qid, timestamp_now);
 
 	/* add expiration starting on this exact moment , doesnt fully support many days*/
 	time_struct->tm_sec += expiration->tm_sec;
