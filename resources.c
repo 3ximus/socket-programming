@@ -81,7 +81,7 @@ void printHostInfo(struct sockaddr_in addr){
  */
 char *readFromFile(const char *file_name){
 	int fd, bytes_read = 100;
-	char read_buffer[100];
+	char read_buffer[200];
 	char *accumulator_buffer = (char *) malloc(BUFFER_2048 * sizeof(char ));
 
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
@@ -91,7 +91,7 @@ char *readFromFile(const char *file_name){
 		exit(-1);
 	}
 	/* while EOF isnt reached */
-	while((bytes_read = read(fd, read_buffer, 100)) > 0){
+	while((bytes_read = read(fd, read_buffer, 200)) > 0){
 		/* build file content on the accumulator */
 		strcat(accumulator_buffer, read_buffer);
 	}

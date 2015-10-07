@@ -368,6 +368,7 @@ unsigned char *AQS_reply(char* qid, int score){
 	strcat((char*)server_reply, " ");
 	strcat((char*)server_reply, score_char); /* TODO score*/
 	strcat((char * )server_reply, "\n");
+	
 	return server_reply;
 }
 

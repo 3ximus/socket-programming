@@ -177,7 +177,7 @@ int main(int argc, char *argv[]){
 			}
 			parse_string(parsed_reply, (char *)server_reply, " ", 4);
 
-			printf("Score of QID: %s is %s", parsed_reply[1], parsed_reply[2]);
+			printf("Score of QID: %s is %s\n", parsed_reply[1], parsed_reply[2]);
 			free(parsed_reply);
 			close(tcp_socket);
 		}

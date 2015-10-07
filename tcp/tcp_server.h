@@ -17,13 +17,14 @@ void sigterm_handler(int x){
 
 int start_tcp_server(int port, int *socket_fd) {
 	int fd, newfd, addrlen, bytes_read, bytes_written, bytes_to_write = 0, child_pid = 0;
-	char received_buffer[REQUEST_BUFFER_64], *qid = NULL, request[REQUEST_BUFFER_64], *request_ptr;
+	char received_buffer[REQUEST_BUFFER_64], qid[BUFFER_32], request[REQUEST_BUFFER_64], *request_ptr;
 	unsigned char *reply_ptr;
 	unsigned char *reply_msg = NULL; /* must be freed */
 	struct sockaddr_in addr;
 	int sid, topic;
 	char **parsed_request = (char **)malloc(sizeof(char *) * 10); /* must be freed */
 
+	memset(qid, '\0', BUFFER_32);
 
 	/* TCP socket atribution create an endpoint for TCP communication. */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1) {
@@ -32,9 +33,7 @@ int start_tcp_server(int port, int *socket_fd) {
 	}
 
 	*socket_fd = fd;
-
 	memset((void *)&addr,(int)'\0', sizeof(addr));
-
 	addr.sin_family = AF_INET; /* AF_INET -- IPv4 internet protocols (TCP,UDP) */
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); /* Accept datagrams on any Internet interface on the system */
 	addr.sin_port = htons(port);
@@ -119,6 +118,7 @@ int start_tcp_server(int port, int *socket_fd) {
 					struct server ecp_server;
 					int score, udp_fd;
 					/* check if sid and qid dont match */
+
 					if (sid != atoi(parsed_request[1]) && strcmp(parsed_request[2], qid) != 0){
 						reply_msg = ERR_reply();
 						bytes_to_write = 5;
@@ -134,7 +134,7 @@ int start_tcp_server(int port, int *socket_fd) {
 
 					reply_msg = AQS_reply(qid, score);
 					bytes_to_write = REPLY_BUFFER_32;
-					printf("\rSending AQS reply: %s\n> ", reply_msg);
+					printf("\rSending AQS reply: %s> ", reply_msg);
 					fflush(stdout);
 
 					/* ECP */
@@ -142,12 +142,14 @@ int start_tcp_server(int port, int *socket_fd) {
 					ecp_server.port = DEFAULT_PORT_ECP;
 					gethostname((char *)ecp_server.name, sizeof(ecp_server.name));
 					udp_fd = start_udp_client(&udp_addr, &ecp_server);
+					
 					/* contact ecp */
 					printf("\rSending IQR request\n> ");
 					fflush(stdout);
 					server_reply = IQR_request(udp_fd, &udp_addr, sid, qid, topic, score);
 
 					free(server_reply);
+					
 					break;
 				}
 				else{
