@@ -189,19 +189,9 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 
 unsigned char *IQR_request(int fd, const struct sockaddr_in* addr, int sid, char* qid, int topic, int score){
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_64] = "IQR ", sid_char[6], topic_char[3], score_char[6];
+	char request[REQUEST_BUFFER_64];
 
-	sprintf(sid_char, "%d", sid);
-	sprintf(topic_char, "%d", topic);
-	sprintf(score_char, "%d", score);
-	strcat(request, sid_char);
-	strcat(request, " ");
-	strcat(request, qid);
-	strcat(request, " ");
-	strcat(request, topic_char);
-	strcat(request, " ");
-	strcat(request, score_char);
-	strcat(request, "\n");
+	sprintf(request,"IQR %d %s %d %d\n", sid,qid,topic,score);
 
 	/* contact server with built request */
 	send_udp_request(fd, (unsigned char *)request, addr);
