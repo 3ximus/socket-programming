@@ -168,7 +168,9 @@ int main(int argc, char *argv[]){
 				free(parsed_reply);
 				continue;
 			}
+
 			server_reply = RQS_request(tcp_socket, sid, tes_info.qid, parsed_cmd);
+
 			if (check_for_errors((char *)server_reply, "AQS") == -1){
 				printf("Wrong answer\n");
 				free(parsed_reply);
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]){
 			}
 			parse_string(parsed_reply, (char *)server_reply, " ", 4);
 
-			printf("Score of QID: %s is %s\n", parsed_reply[1], parsed_reply[2]);
+			printf("Score of QID: %s is %s", parsed_reply[1], parsed_reply[2]);
 			free(parsed_reply);
 			close(tcp_socket);
 		}

@@ -144,9 +144,9 @@ int start_tcp_server(int port, int *socket_fd) {
 					udp_fd = start_udp_client(&udp_addr, &ecp_server);
 					
 					/* contact ecp */
-					printf("\rSending IQR request\n> ");
-					fflush(stdout);
 					server_reply = IQR_request(udp_fd, &udp_addr, sid, qid, topic, score);
+					printf("\rSending IQR request: %s> ",server_reply);
+					fflush(stdout);
 
 					free(server_reply);
 					
