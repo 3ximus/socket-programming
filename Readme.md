@@ -49,14 +49,16 @@ Use all xx_reply() functions to build the server replies.
 * * *
 
 # To Do:
-- **[HIGH]** finalizar o submit no server, checkando as respostas submetidas e comunicando com o ECP
+- **[HIGH]** interpret ECP reply on the TES server
+- **[HIGH]** random no AQT_reply user_info->internal_qid = 1;
 - **[HIGH]** adicionar checks em todo o lado para nao haver erros
 > apanhar erros nas funcoes usadas, nao aceder a posicoes de parsed strings que podem nao existir, etc
 - **[MEDIUM]** Fazer timeout nas ligaceos UDP
 - **[LOW]** corrigir parseOpt
 
 * * *
-# Bugs:
+# Bugs / Known Issues:
+- **[HIGH]** score nao e bem calculado
 - **[MEDIUM]** request com numero invalido (mt grande) fica preso no servidor ecp pq ele fecha a ligacao.
 - **[MEDIUM]** corrigir as funcoes que leem os argumentos para que nao aceitem qualquer opcao (-p -n, etc..)
 

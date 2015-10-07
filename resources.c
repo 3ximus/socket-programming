@@ -245,3 +245,27 @@ int check_for_errors(const char* original, char* expected){
 	else
 		return -1;
 }
+
+/* 
+ * Calculate the score of a given answer
+ */
+int calculate_score(int topic, int internal_qid, char **parsed_request){
+	int c = 0, score = 0;
+	FILE* fd;
+	size_t len = 0;
+	char path[BUFFER_32], *read_buffer = NULL;
+
+	sprintf(path, "quest/%d/T%dQ%dA.txt", topic, topic, internal_qid);
+	if ((fd = fopen(path, "r")) == NULL){
+		perror("[ERROR] File not found.");
+		exit(1);
+	}
+	getline(&read_buffer, &len, fd);
+	for (c = 0; c < 5; c++)
+		if (parsed_request[c][0] == read_buffer[c*2])
+			score += 200;
+
+	free(read_buffer);
+	fclose(fd);
+	return score;
+}

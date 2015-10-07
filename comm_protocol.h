@@ -83,7 +83,7 @@ unsigned char *AWTES_reply(const int topic_number);
  *  timestamp of the request
  * Reply is allocated here, must be freed on the server
  */
-unsigned char *AQT_reply(int, const struct tm* delay, char *qid);
+unsigned char *AQT_reply(struct user_table*, time_t, int);
 
 /*
  * Used to reply to a RQS request
@@ -259,61 +259,38 @@ unsigned char *AWTES_reply(const int topic_number){
 	return server_reply;
 }
 
-unsigned char *AQT_reply(int sid, const struct tm* expiration, char *qid){
-	char sid_char[5], timestamp[30], timestamp_now[30], size_char[6];
-	time_t now;
+unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
+	char timestamp_deadline[BUFFER_32], timestamp_now[BUFFER_32], path[BUFFER_32];
+	struct tm *t_struct_now = (struct tm*)malloc(sizeof(struct tm)),
+			 *t_struct_deadline = (struct tm *)malloc(sizeof(struct tm));
 	int fd;
-	/*size_t len = 0;*/
 	ssize_t bytes_read, quest_size = 0;
 	char read_buffer[REPLY_BUFFER_OVER_9000];
-	struct tm *time_struct;
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_OVER_9000 * sizeof(unsigned char)),
+				   placeholder[REPLY_BUFFER_OVER_9000],
 				  *server_reply_ptr = NULL,
-				  placeholder[REPLY_BUFFER_OVER_9000],
 				  *placeholder_ptr = NULL;
 	/* zero buffer */
 	memset((void *)server_reply,'\0', REPLY_BUFFER_OVER_9000);
-	memset((void *)timestamp,'\0', 30);
+	memset((void *)timestamp_now,'\0', BUFFER_32);
+	memset((void *)timestamp_deadline,'\0', BUFFER_32);
 
-	/* build reply */
-	strncpy((char* )server_reply, "AQT ", 4);
+	/* set time struct with current time*/
+	localtime_r((const time_t *)&now, t_struct_now);
+	localtime_r((const time_t *)&user_info->deadline, t_struct_deadline);
+	/* convert time to string format, creating the timestamps */
+	strftime(timestamp_now, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_now);
+	strftime(timestamp_deadline, BUFFER_32, "%d%b%Y_%H:%M:%S", t_struct_deadline);
 
-	/* set time struct to be this exat moment */
-	time(&now);
-	time_struct = localtime((const time_t *)&now);
+	sprintf(user_info->qid, "%d_%s",user_info->sid, timestamp_now); /* export qid */
 
-	/* convert current time to string format */
-	strftime(timestamp_now, 30, "%d%b%Y_%H:%M:%S", time_struct);
-
-	sprintf(sid_char, "%d", sid);
-	/* qid */
-	strcat((char *)server_reply, sid_char);
-	strcat((char *)server_reply, "_");
-	strcat((char *)server_reply, timestamp_now);
-	strcat((char *)server_reply, " ");
-
-	/* export qid */
-	strcat(qid, sid_char);
-	strcat(qid, "_");
-	strcat(qid, timestamp_now);
-
-	/* add expiration starting on this exact moment , doesnt fully support many days*/
-	time_struct->tm_sec += expiration->tm_sec;
-	time_struct->tm_min += (time_struct->tm_sec / 59) + expiration->tm_min;
-	time_struct->tm_hour += (time_struct->tm_min / 59) + expiration->tm_hour;
-	time_struct->tm_mday += (time_struct->tm_hour / 23) + expiration->tm_mday;
-	/* cap values */
-	time_struct->tm_sec = time_struct->tm_sec % 60;
-	time_struct->tm_min = time_struct->tm_min % 60;
-	time_struct->tm_hour = time_struct->tm_hour % 24;
-
-	/* convert current time to string format and add it to the server reply*/
-	strftime(timestamp, 30, "%d%b%Y_%H:%M:%S", time_struct);
-	strcat((char *)server_reply, timestamp);
-	strcat((char *)server_reply, " ");
+	/* TODO use a random here */
+	user_info->internal_qid = 1;
 
 	/* read file */
-	if ((fd = open("2015_2016_Proj_SocketProg.pdf", O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
+	sprintf(path, "quest/%d/T%dQ%d.pdf", topic, topic, user_info->internal_qid);
+	printf("path: %s\n", path);
+	if ((fd = open(path, O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
 		/* handle error */
 		perror("[ERROR] Opening .pdf file\n");
 		exit(-1);
@@ -324,11 +301,8 @@ unsigned char *AQT_reply(int sid, const struct tm* expiration, char *qid){
 		placeholder_ptr += bytes_read; /* move pointer */
 		quest_size += bytes_read; /* increment size counter */
 	}
-
-	/* concatenate size */
-	sprintf(size_char, "%d", (int)quest_size);
-	strcat((char *)server_reply, size_char);
-	strcat((char *)server_reply, " ");
+	/* build reply */
+	sprintf((char *)server_reply, "AQT %d_%s %s %d ", user_info->sid, timestamp_now, timestamp_deadline, (int)quest_size);
 
 	/* pdf content */
 	server_reply_ptr = server_reply + strlen((char *)server_reply); /* pointer to the end of the server reply string */
