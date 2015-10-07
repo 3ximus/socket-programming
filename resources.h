@@ -65,10 +65,17 @@ struct server{
 
 /* tes server structure contains connection info */
 struct tes_server{
-	char qid[30];
+	char qid[BUFFER_32];
 	char ip_addr[16];
 	int port;
-	char time_limit[30];
+	char time_limit[BUFFER_32];
+};
+
+/* tes server user-quest table */
+struct user_table{
+	int sid;
+	char deadline[BUFFER_32];
+	int score;
 };
 
 /* -------------------------------- */

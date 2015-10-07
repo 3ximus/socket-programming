@@ -37,6 +37,7 @@ int start_tcp_server(int port, int *socket_fd) {
 	addr.sin_family = AF_INET; /* AF_INET -- IPv4 internet protocols (TCP,UDP) */
 	addr.sin_addr.s_addr = htonl(INADDR_ANY); /* Accept datagrams on any Internet interface on the system */
 	addr.sin_port = htons(port);
+	topic = port % 100; /* get topic number from the port where it is running */
 
 	/* catch exit signal */
 	if (signal(SIGTERM, sigterm_handler) == SIG_ERR)
@@ -64,6 +65,8 @@ int start_tcp_server(int port, int *socket_fd) {
 
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
+		/*struct user_table *user_info = (struct user_table *)malloc(sizeof(struct user_table));*/
+
 		while(1) {
 			addrlen = sizeof(addr);
 
@@ -75,10 +78,10 @@ int start_tcp_server(int port, int *socket_fd) {
 			/* set in the begining */
 			memset(request, '\0', REQUEST_BUFFER_64);
 			request_ptr = request;
-			
 
 			/* reading cycle */
 			while((bytes_read = read(newfd, received_buffer, REQUEST_BUFFER_64)) != 0){
+
 				if(bytes_read == -1){
 					perror("Error: read()\n");
 					exit(1);
@@ -97,16 +100,14 @@ int start_tcp_server(int port, int *socket_fd) {
 
 				/* Handle requests */
 				if (strcmp(parsed_request[0], "RQT") == 0){
-					struct tm expiration_time;
-					memset((void *)&expiration_time, 0, sizeof(struct tm));
+					time_t now, deadline;
+					time(&now);
 
 					/* set expiration time */
-					expiration_time.tm_min = 10;
-
+					deadline = now + 600; /* time now + 10 minutes */
 					sid = atoi(parsed_request[1]);
 
-					/* TODO PASS CORRECT QID AND TIME DELAY*/
-					reply_msg = AQT_reply(sid, (const struct tm *)&expiration_time, qid);
+					reply_msg = AQT_reply(sid, now, deadline, qid);
 					bytes_to_write = REPLY_BUFFER_OVER_9000;
 					printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
 					fflush(stdout);
@@ -126,12 +127,13 @@ int start_tcp_server(int port, int *socket_fd) {
 						fflush(stdout);
 						break;
 					}
-					/* TODO check deadline */
-
-					/* TODO Calculate score */
-					score = 1000;
-					topic = 1;
-
+					
+					if (1 /* deadline */)
+						score = -1;
+					else {
+						score = 1000;
+					}
+				
 					reply_msg = AQS_reply(qid, score);
 					bytes_to_write = REPLY_BUFFER_32;
 					printf("\rSending AQS reply: %s> ", reply_msg);
