@@ -25,7 +25,7 @@ struct server *optParser(int argc, char *argv[]){
 
 		case 4:
 			if(((strcmp(argv[2],"-n")) == 0)){
-				strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
+				strncpy((char *)ecp->name, argv[3], sizeof(ecp->name)); 
 	 			ecp->port = DEFAULT_PORT_ECP;
 	 			break;
 	 		}
@@ -41,16 +41,16 @@ struct server *optParser(int argc, char *argv[]){
 
 		case 6:
 			if(((strcmp(argv[2],"-n")) == 0) && ((strcmp(argv[4],"-p")) == 0)){
-				strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
+				strncpy((char *)ecp->name, argv[3], sizeof(ecp->name)); 
 				ecp->port = atoi(argv[5]);
 				break;
 			}
 			else if(((strcmp(argv[2],"-p")) == 0) && ((strcmp(argv[4],"-n")) == 0)){
-				strcpy((char *)ecp->name,argv[5]); /* CORRECT for buffer overflow */
+				strncpy((char *)ecp->name, argv[5], sizeof(ecp->name));
 				ecp->port = atoi(argv[3]);
 				break;
 			}
-			
+
 		default:
 		wrong_input:
 			printf("[ERROR]: Wrong input format.%s",inputErr);
