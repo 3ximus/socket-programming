@@ -58,7 +58,7 @@
 /* -------------------------------- */
 
 /* Server structure, contains server information */
-struct server{
+struct ecp_server{
 	unsigned char name[50];
 	unsigned int port;
 };
@@ -85,7 +85,7 @@ struct user_table{
 /*
  * Passes options passed to exec
  */
-struct server* optParser(int, char**);
+void optParser(int, char **, int *, struct ecp_server*);
 
 /* 
  * Returns ip adress associated with hostname:
@@ -99,22 +99,6 @@ int getHostIP(const char *);
  * - Port
  */
 void printHostInfo(struct sockaddr_in);
-
-/*
- * Log action on server
- * Types are unix standard 64 present in /usr/include/x86_64-linux-gnu/asm/unistd_64.h
- * for the first 4 types of log actions
- * 0 - read
- * 1 - write
- * 2 - open
- * 3 - close
- * From here extra ones were added
- * 4 - log
- * 5 - warning
- * 6 - errror
- */
-void log_action(char*, char*, int);
-
 
 /*
  * Returns the entire file content

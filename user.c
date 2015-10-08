@@ -6,23 +6,23 @@
  * Features a shell with the commands: list , request, submit, help, exit
  */
 int main(int argc, char *argv[]){
-	/* read arguments passed */
-	const struct server *ecp_server = optParser(argc, argv);
 	/* shell cmds */
 	char* cmd = NULL;
 	char **parsed_cmd = (char **)malloc(6 * sizeof(char *));
 	/* server */
+	struct ecp_server ecp;
 	unsigned char *server_reply = NULL;
 	struct sockaddr_in udp_addr;
 	struct tes_server tes_info;
 	/* generic */
-	int sid = atoi(argv[1]), udp_socket, tcp_socket;
+	int sid, udp_socket, tcp_socket;
 	size_t line_size = 0;
 
-	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp_server->name, ecp_server->port);
+	optParser(argc, argv, &sid, &ecp); /* read arguments passed */
+	printf("SID: %d\nECPname: %s\nECPport: %d\n",sid, ecp.name, ecp.port);
 
 	/* initiate a UDP client */
-	udp_socket = start_udp_client(&udp_addr, ecp_server);
+	udp_socket = start_udp_client(&udp_addr, &ecp);
 
 	while(1){
 		printf("> ");

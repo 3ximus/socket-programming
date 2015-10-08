@@ -3,61 +3,40 @@
 /*
  * Passes options passed to exec
  */
-struct server *optParser(int argc, char *argv[]){	
-	struct server *ecp = (struct server *)malloc(sizeof(struct server));
-
+void optParser(int argc, char *argv[], int *sid, struct ecp_server* ecp){
+	int arg ;
 	char inputErr[] = "\n\nInput format: ./user SID [-n ECPname] [-p ECPport]\n\nSID: student identity number.\nECPname: name of ECP server (opt).\nECPport: well-known port of ECP server (opt).\n\n";
 
-	switch(argc){
-		case 1:
-		case 3:
-		case 5:
-			printf("[ERROR]: Not enough arguments.%s",inputErr);
-			exit(1);
-
-		case 2:
-			if(gethostname((char *)ecp->name, sizeof(ecp->name))){
-				printf("ERROR: gethostname()\n");
-				exit(1);
-			}
-	 		ecp->port = DEFAULT_PORT_ECP;
-	 		break;
-
-		case 4:
-			if(((strcmp(argv[2],"-n")) == 0)){
-				strncpy((char *)ecp->name, argv[3], sizeof(ecp->name)); 
-	 			ecp->port = DEFAULT_PORT_ECP;
-	 			break;
-	 		}
-	 		else if(((strcmp(argv[2],"-p")) == 0)){
-	 			ecp->port = atoi(argv[3]);
-	 			if(gethostname((char *)ecp->name, sizeof(ecp->name))){
-					printf("ERROR: gethostname()\n");
-					exit(1);
-				}
-				break;
-	 		}
-	 		goto wrong_input;
-
-		case 6:
-			if(((strcmp(argv[2],"-n")) == 0) && ((strcmp(argv[4],"-p")) == 0)){
-				strncpy((char *)ecp->name, argv[3], sizeof(ecp->name)); 
-				ecp->port = atoi(argv[5]);
-				break;
-			}
-			else if(((strcmp(argv[2],"-p")) == 0) && ((strcmp(argv[4],"-n")) == 0)){
-				strncpy((char *)ecp->name, argv[5], sizeof(ecp->name));
-				ecp->port = atoi(argv[3]);
-				break;
-			}
-
-		default:
-		wrong_input:
-			printf("[ERROR]: Wrong input format.%s",inputErr);
-			exit(1);
+	if (argc < 2){
+		printf("[ERROR]: Not enough arguments.%s",inputErr);
+		exit(1);
 	}
-
-	return ecp;
+	if ((*sid = atoi(argv[1])) == 0){
+		printf("[ERROR Insert a valid SID");
+		exit(1);
+	}
+	ecp->port = DEFAULT_PORT_ECP;
+	if (gethostname((char*)ecp->name, sizeof(ecp->name)) == -1) {
+		perror("[ERROR] Getting hostname.");
+		exit(1);
+	}
+	for (arg = 2; arg < argc; arg++){
+		if (strcmp(argv[arg], "-n") == 0 && arg != argc - 1){
+			strncpy((char*)ecp->name, argv[arg +1], sizeof(ecp->name));
+			arg++;
+		}
+		else if (strcmp(argv[arg], "-p") == 0 && arg != argc - 1){
+			if ((ecp->port = atoi(argv[arg +1])) == 0){
+				printf("[ERROR Insert a valid port");
+				exit(1);	
+			}
+			arg++;
+		}
+		else {
+			printf("[ERROR] Unknown argument %s\n", argv[arg]);
+			exit(1);
+		}
+	}
 }
 
 /* 

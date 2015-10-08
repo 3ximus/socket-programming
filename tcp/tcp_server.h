@@ -109,7 +109,7 @@ int start_tcp_server(int port, int *socket_fd) {
 				else if (strcmp(parsed_request[0], "RQS") == 0) {
 					unsigned char *server_reply = NULL;
 					struct sockaddr_in udp_addr;
-					struct server ecp_server;
+					struct ecp_server ecp;
 					int udp_fd;
 					time_t now;
 					time(&now);
@@ -134,9 +134,9 @@ int start_tcp_server(int port, int *socket_fd) {
 
 					/* ECP */
 					/* initiate a UDP client */
-					ecp_server.port = DEFAULT_PORT_ECP;
-					gethostname((char *)ecp_server.name, sizeof(ecp_server.name));
-					udp_fd = start_udp_client(&udp_addr, &ecp_server);
+					ecp.port = DEFAULT_PORT_ECP;
+					gethostname((char *)ecp.name, sizeof(ecp.name));
+					udp_fd = start_udp_client(&udp_addr, &ecp);
 					
 					/* contact ecp */
 					printf("\rSending IQR request\n> ");

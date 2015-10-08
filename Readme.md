@@ -51,7 +51,6 @@ Use all xx_reply() functions to build the server replies.
 # To Do:
 - **[HIGH]** adicionar checks em todo o lado para nao haver erros
 > apanhar erros nas funcoes usadas, nao aceder a posicoes de parsed strings que podem nao existir, etc
-- **[MEDIUM]** Fazer timeout nas ligaceos UDP
 
 * * *
 # Bugs / Known Issues:
