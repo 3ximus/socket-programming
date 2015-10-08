@@ -13,11 +13,11 @@ int main(int argc, char** argv)
 
 	if(argc == 1)
 		port = DEFAULT_PORT_TES;
-	else if(argc == 3)
+	else if(argc == 3 && ((strcmp(argv[1],"-p")) == 0))
 		port = atoi(argv[2]);
 	else
 	{
-		printf("ERROR: Wrong input format.\ninput: ./ECP [-p ECPport]\n");
+		printf("ERROR: Wrong input format.\ninput: ./TES [-p TESport]\n");
 		exit(1);
 	}
 
