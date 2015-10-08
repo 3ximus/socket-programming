@@ -6,10 +6,12 @@
 struct server *optParser(int argc, char *argv[]){	
 	struct server *ecp = (struct server *)malloc(sizeof(struct server));
 
-	char* inputErr = "\n\nInput format: ./user SID [-n ECPname] [-p ECPport]\n\nSID: student identity number.\nECPname: name of ECP server (opt).\nECPport: well-known port of ECP server (opt).\n\n";
+	char inputErr[] = "\n\nInput format: ./user SID [-n ECPname] [-p ECPport]\n\nSID: student identity number.\nECPname: name of ECP server (opt).\nECPport: well-known port of ECP server (opt).\n\n";
 
 	switch(argc){
 		case 1:
+		case 3:
+		case 5:
 			printf("[ERROR]: Not enough arguments.%s",inputErr);
 			exit(1);
 
@@ -22,16 +24,35 @@ struct server *optParser(int argc, char *argv[]){
 	 		break;
 
 		case 4:
-			strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
-	 		ecp->port = DEFAULT_PORT_ECP;
-	 		break;
+			if(((strcmp(argv[2],"-n")) == 0)){
+				strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
+	 			ecp->port = DEFAULT_PORT_ECP;
+	 			break;
+	 		}
+	 		else if(((strcmp(argv[2],"-p")) == 0)){
+	 			ecp->port = atoi(argv[3]);
+	 			if(gethostname((char *)ecp->name, sizeof(ecp->name))){
+					printf("ERROR: gethostname()\n");
+					exit(1);
+				}
+				break;
+	 		}
+	 		goto wrong_input;
 
 		case 6:
-			strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
-			ecp->port = atoi(argv[5]);
-			break;
-
+			if(((strcmp(argv[2],"-n")) == 0) && ((strcmp(argv[4],"-p")) == 0)){
+				strcpy((char *)ecp->name,argv[3]); /* CORRECT for buffer overflow */
+				ecp->port = atoi(argv[5]);
+				break;
+			}
+			else if(((strcmp(argv[2],"-p")) == 0) && ((strcmp(argv[4],"-n")) == 0)){
+				strcpy((char *)ecp->name,argv[5]); /* CORRECT for buffer overflow */
+				ecp->port = atoi(argv[3]);
+				break;
+			}
+			
 		default:
+		wrong_input:
 			printf("[ERROR]: Wrong input format.%s",inputErr);
 			exit(1);
 	}
