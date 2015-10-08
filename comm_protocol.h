@@ -116,9 +116,7 @@ unsigned char *ERR_reply();
 unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
 	unsigned char *server_reply = NULL;
 	char *request = "TQR\n";	
-
-	/* contact ecp server with TQR request */
-	send_udp_request(fd, (unsigned char *)request, addr);
+	send_udp_request(fd, (unsigned char *)request, addr); /* contact ecp server with TQR request */
 	server_reply = receive_udp_reply(fd, addr);
 	return server_reply;
 }
@@ -134,11 +132,8 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 	if (endptr == topic_number || val < 1 || val > TOPIC_NR)
 		printf("[ERROR] Request with no valid number\n");
 
-	/* build request */
-	sprintf(request, "TER %s\n", topic_number);
-
-	/* contact server with built request */
-	send_udp_request(fd, (unsigned char *)request, addr);
+	sprintf(request, "TER %s\n", topic_number); /* build request */
+	send_udp_request(fd, (unsigned char *)request, addr); /* contact server with built request */
 	server_reply = receive_udp_reply(fd, addr);
 	return server_reply;
 }
@@ -146,15 +141,9 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 unsigned char *RQT_request(int fd, int sid){
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_32];
-
-	/* build request */
-	sprintf(request, "RQT %d\n", sid);
-
-	/* send request */
-	send_tcp_request(fd, (unsigned char*)request);
-	/* wait for reply */
-	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_OVER_9000);
-
+	sprintf(request, "RQT %d\n", sid); 	/* build request */
+	send_tcp_request(fd, (unsigned char*)request);  /* send request */
+	server_reply = receive_tcp_reply(fd, REPLY_BUFFER_OVER_9000); /* wait for reply */
 	return server_reply;
 }
 
@@ -188,12 +177,8 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 unsigned char *IQR_request(int fd, const struct sockaddr_in* addr, int sid, char* qid, int topic, int score){
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_64];
-
-	/* build request */
-	sprintf(request,"IQR %d %s %d %d\n", sid,qid,topic,score);
-
-	/* contact server with built request */
-	send_udp_request(fd, (unsigned char *)request, addr);
+	sprintf(request,"IQR %d %s %d %d\n", sid,qid,topic,score); /* build request */
+	send_udp_request(fd, (unsigned char *)request, addr); /* contact server with built request */
 	server_reply = receive_udp_reply(fd, addr);
 	return server_reply;
 }
@@ -209,14 +194,9 @@ unsigned char* AWT_reply(){
 	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
 
 	memset((void *)server_reply,'\0', REPLY_BUFFER_1024);
-
 	strncpy((char *)server_reply, "AWT ", 4);
-
-	/* raw data from topics file */
-	raw_content = readFromFile(TOPICS_FILE);
-
-	/* organize topics (1 per line) */
-	file_content = parseString(raw_content, "\n");
+	raw_content = readFromFile(TOPICS_FILE); /* raw data from topics file */
+	file_content = parseString(raw_content, "\n"); /* organize topics (1 per line) */
 
 	/* count lines in file */
 	ntopic = 0;
@@ -238,9 +218,7 @@ unsigned char* AWT_reply(){
 	/* Frees memory */
 	free(file_content);
 	free(raw_content);
-
 	strcat((char *)server_reply, "\n");
-
 	return server_reply;
 }
 
@@ -254,7 +232,6 @@ unsigned char *AWTES_reply(const int topic_number){
 
 	/* build reply */
 	sprintf((char *) server_reply, "AWTES %s\n",file_content);
-
 	free(file_content);
 	return server_reply;
 }
@@ -284,15 +261,14 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
 
 	sprintf(user_info->qid, "%d_%s",user_info->sid, timestamp_now); /* export qid */
 
-	/* TODO use a random here */
-	user_info->internal_qid = 1;
+ 	/* select a random quest*/
+ 	srandom(now); /* use time as seed */
+	user_info->internal_qid = random() % 2 + 1;
 
 	/* read file */
 	sprintf(path, "quest/%d/T%dQ%d.pdf", topic, topic, user_info->internal_qid);
-	printf("path: %s\n", path);
 	if ((fd = open(path, O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
-		/* handle error */
-		perror("[ERROR] Opening .pdf file\n");
+		perror("[ERROR] Opening .pdf file\n"); /* handle error */
 		exit(-1);
 	}
 	placeholder_ptr = placeholder;
@@ -307,9 +283,7 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
 	/* pdf content */
 	server_reply_ptr = server_reply + strlen((char *)server_reply); /* pointer to the end of the server reply string */
 	memcpy(server_reply_ptr, placeholder, quest_size);
-
-	/* finish reply */
-	strcat((char * )server_reply, "\n");
+	strcat((char * )server_reply, "\n"); /* finish reply */
 	close(fd);
 	return server_reply;
 }
@@ -317,19 +291,14 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
 unsigned char *AQS_reply(char* qid, int score){
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_128 * sizeof(unsigned char));
 	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
-
-	/* build reply */
-	sprintf((char * )server_reply, "AQS %s %d\n",qid,score);
-	
+	sprintf((char * )server_reply, "AQS %s %d\n",qid,score);	
 	return server_reply;
 }
 
 unsigned char *AWI_reply(char* qid){
 	unsigned char *server_reply = (unsigned char *)malloc(REPLY_BUFFER_128 * sizeof(unsigned char));
 	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
-
 	sprintf((char * )server_reply, "AWI %s\n",qid);	
-
 	return server_reply;
 }
 

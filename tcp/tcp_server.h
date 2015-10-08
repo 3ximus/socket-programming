@@ -11,7 +11,6 @@ int start_tcp_server(int, int*);
 /* Handle SIGTERM */
 void sigterm_handler(int x){
 	printf("[SERVER_MSG] Arrrhhh!!! You killed me with signal %d!!!\n", x);
-
 	exit(0);
 }
 
@@ -143,6 +142,8 @@ int start_tcp_server(int port, int *socket_fd) {
 					printf("\rSending IQR request\n> ");
 					fflush(stdout);
 					server_reply = IQR_request(udp_fd, &udp_addr, user_info->sid, user_info->qid, topic, user_info->score);
+					printf("\rGot AWI reply: %s> ", server_reply);
+					fflush(stdout);
 
 					free(server_reply);
 					close(udp_fd);
