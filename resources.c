@@ -87,7 +87,7 @@ char *readFromFile(const char *file_name){
 	fd = open(file_name, O_RDONLY, S_IRUSR|S_IWUSR);
 	if (fd == -1){
 		/* handle error */
-		perror("[ERROR] Opening topics.txt file\n");
+		perror("[ERROR] Opening topics.txt file");
 		exit(-1);
 	}
 	/* while EOF isnt reached */
@@ -114,28 +114,25 @@ char *findTopic(const int search_me){
 	char *read_buffer = NULL,
 		 **parsed_line = (char **)malloc(TOPIC_NR * sizeof(char *)),
 		 *content = (char *)malloc(BUFFER_32 * sizeof(char));
-	
 	memset((void *)content,'\0', BUFFER_32);
-
-	fd = fopen(TOPICS_FILE, "r");
 	
+	if ((fd = fopen(TOPICS_FILE, "r")) == NULL){
+		perror("[ERROR] Couldn't find topics file");
+		exit(1);
+	}
 	while (i <= search_me){
-		bytes_read = getline(&read_buffer, &len, fd);
-		if (bytes_read == -1){
-			strcpy(read_buffer, "EOF");
-			break;
+		if ((bytes_read = getline(&read_buffer, &len, fd)) == -1){
+			free(parsed_line);
+			free(read_buffer);
+			fclose(fd);
+			return NULL;
 		}
 		i++;
 	}
 	if (3 != parse_string(parsed_line, read_buffer, " \n", 3))
-		return "EOF";
-
-	/* add IP */
-	strcpy(content, parsed_line[1]);
-	strcat(content, " ");
-	/* add port */
-	strcat(content, parsed_line[2]);
-
+		return NULL;
+	
+	sprintf(content, "%s %s", parsed_line[1], parsed_line[2]); /* add IP and PORT */
 	if (content[strlen(content) - 1] == '\n')
 		content[strlen(content) -1] = '\0';
 
@@ -233,7 +230,7 @@ int checkSubmitAnswer(char **answ){
 int check_for_errors(const char* original, char* expected){
 	int n;
 	char parsed[7];
-	memset(parsed, '\0', 7);
+	memset((void*)parsed, '\0', 7);
 	for (n = 0; n < 7; n++)
 		if (original[n] != '\0' && original[n] != '\n' && original[n] != ' ')
 			parsed[n] = original[n];

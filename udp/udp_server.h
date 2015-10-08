@@ -83,7 +83,7 @@ int start_udp_server(int port, int *socket_fd){
 		parsed_request = parseString(received_buffer, " ");
 		
 		/* Print request */
-		printf("\rGot Request %s from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+		printf("\rGot %s Request from %s:%d\n> ", parsed_request[0], inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
 		fflush(stdout);	
 
 		if(strcmp(parsed_request[0],"TQR") == 0){		

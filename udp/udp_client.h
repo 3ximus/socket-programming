@@ -26,7 +26,7 @@ int start_udp_client(struct sockaddr_in *addr, const struct server *ecp_server){
 	int fd;
 	/*Atribuicao da socket UDP */
 	if((fd = socket(AF_INET,SOCK_DGRAM,0)) == -1){
-		perror("Error: creating socket()\n");
+		perror("Error: creating socket()");
 		exit(1);
 	}
 
@@ -41,11 +41,10 @@ int start_udp_client(struct sockaddr_in *addr, const struct server *ecp_server){
 
 int send_udp_request(int fd, const unsigned char *request, const struct sockaddr_in *addr){
 	int n;
-
 	/* Send server request */
 	if((n = sendto(fd, request, strlen((char*)request), 0,(struct sockaddr *)addr, sizeof(struct sockaddr))) == -1)
 	{
-		perror("Error: sendto()\n");
+		perror("Error: sendto()");
 		close(fd);
 		exit(1);
 	}
@@ -54,22 +53,23 @@ int send_udp_request(int fd, const unsigned char *request, const struct sockaddr
 
 unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 	int n;
+	struct timeval timeout;
 	socklen_t slen = sizeof(struct sockaddr_in);
 	unsigned char server_reply[REPLY_BUFFER_1024];
 	unsigned char *returned_server_reply = (unsigned char *) malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
 
- 	/* TODO add timer */
-	/* receive server reply */
-
-	if((n = recvfrom(fd, server_reply, REPLY_BUFFER_1024, 0, (struct sockaddr*)addr,&slen)) == -1){
-		perror("Error: recvfrom()\n");
-		/*free(returned_server_reply);*/
-		close(fd);
-		exit(1);
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100000; /* 100 ms */
+	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0){ /* set timeout */
+		perror("[ERROR] Couldn't set timeout");
+	}
+			
+	if((n = recvfrom(fd, server_reply, REPLY_BUFFER_1024, 0, (struct sockaddr*)addr,&slen)) == -1){ /* receive server reply */
+		perror("[ERROR] Receiving reply from server");
+		free(returned_server_reply);
+		return NULL;
 	}
 
-	/* IS THIS REALLY NEEDED? */
 	memcpy(returned_server_reply, server_reply, n);
-
 	return returned_server_reply;
 }

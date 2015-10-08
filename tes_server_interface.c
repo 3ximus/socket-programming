@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 		printf("> ");
 		/* TODO Still causes segmentation fault */
 		if ((fgets(cmd, 50, stdin)) == NULL){
-			printf("[ERROR] no command\n");
+			perror("[ERROR] no command");
 			continue;
 		}
 

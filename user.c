@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
 
 		/* TODO Still causes segmentation fault */
 		if (getline(&cmd, &line_size, stdin) == -1){
-			perror("[ERROR] no command\n");
+			perror("[ERROR] no command");
 			continue;
 		}
 		/* remove '\n' */
@@ -44,6 +44,10 @@ int main(int argc, char *argv[]){
 			/* Send TQR request */
 			server_reply = TQR_request(udp_socket, &udp_addr);
 			/* check for errors */
+			if (server_reply == NULL){
+				printf("[ERROR] Connection timed out.\n");
+				continue;
+			}
 			if ((err = check_for_errors((char *)server_reply, "AWT")) == -1){
 				printf("[ERROR] Didn't receive correct reply\n");
 				free(server_reply);
@@ -72,7 +76,7 @@ int main(int argc, char *argv[]){
 			unsigned char *server_reply_ptr;
 			char filename[10];
 			/*char parsed_time[30];*/
-			int quest_size, pdf_fd, written_bytes, i, offset = 0;
+			int quest_size, pdf_fd, written_bytes, i, offset = 0, err;
 
 			if (parsed_cmd[1] == NULL){
 				/* Handle error */
@@ -82,13 +86,26 @@ int main(int argc, char *argv[]){
 			/* receives tes server (containing requested topic) information */
 			server_reply = TER_request(udp_socket, parsed_cmd[1], &udp_addr);
 			/* check for errors */
-			if (check_for_errors((char *)server_reply, "AWTES") == -1){
+			if (server_reply == NULL){
+				printf("[ERROR] Connection timed out.\n");
+				continue;
+			}
+			err = check_for_errors((char *)server_reply, "AWTES");
+			if (err == -1){
 				printf("[ERROR] Didn't receive correct reply\n");
 				free(parsed_reply);
 				free(parsed_reply_2);
 				free(server_reply);
 				continue;
 			}
+			else if (err == 1){
+				printf("[ERROR] That topic doesn't exist\n");
+				free(parsed_reply);
+				free(parsed_reply_2);
+				free(server_reply);
+				continue;
+			}
+
 			
 			server_reply[strlen((char *)server_reply) - 1] = '\0'; /* remove '\n' */
 			parsed_reply = parseString((char *)server_reply, " \n");
@@ -97,7 +114,7 @@ int main(int argc, char *argv[]){
 
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/* if the tes server isn't online */
-				perror("There is no TES server on that port.\n");
+				perror("There is no TES server on that port.");
 				free(server_reply);
 				continue;
 			}
@@ -131,7 +148,7 @@ int main(int argc, char *argv[]){
 			pdf_fd = open(filename, O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
 			if (pdf_fd == -1) {
 				/* handle error */
-				perror("[ERROR] Opening topics.txt file\n");
+				perror("[ERROR] Opening topics.txt file");
 				free(parsed_reply);
 				free(parsed_reply_2);
 				free(server_reply);
@@ -164,7 +181,7 @@ int main(int argc, char *argv[]){
 			}
 			if ((tcp_socket = start_tcp_client(tes_info.ip_addr, tes_info.port)) == -1){
 				/*if the tes server isn't online */
-				perror("[ERROR] There is no TES server on that port.\n");
+				perror("[ERROR] There is no TES server on that port.");
 				free(parsed_reply);
 				continue;
 			}
@@ -206,6 +223,7 @@ int main(int argc, char *argv[]){
 		free(server_reply);
 	}
 	free(parsed_cmd);
+	close(udp_socket);
 	return 0;
 }
 

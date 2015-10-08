@@ -117,7 +117,8 @@ unsigned char *TQR_request(int fd, const struct sockaddr_in* addr){
 	unsigned char *server_reply = NULL;
 	char *request = "TQR\n";	
 	send_udp_request(fd, (unsigned char *)request, addr); /* contact ecp server with TQR request */
-	server_reply = receive_udp_reply(fd, addr);
+	if ((server_reply = receive_udp_reply(fd, addr)) == NULL) /* timeout */
+		return NULL;
 	return server_reply;
 }
 
@@ -134,7 +135,8 @@ unsigned char *TER_request(int fd, const char *topic_number, const struct sockad
 
 	sprintf(request, "TER %s\n", topic_number); /* build request */
 	send_udp_request(fd, (unsigned char *)request, addr); /* contact server with built request */
-	server_reply = receive_udp_reply(fd, addr);
+	if ((server_reply = receive_udp_reply(fd, addr)) == NULL) /* timeout */
+		return NULL;
 	return server_reply;
 }
 
@@ -151,7 +153,7 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	int n;
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_32], sequence[10];
-	memset(sequence, '\0', sizeof(sequence));
+	memset((void*)sequence, '\0', sizeof(sequence));
 
 	/* build request */
 	sprintf(request, "RQS %d %s ", sid,qid);
@@ -227,11 +229,11 @@ unsigned char *AWTES_reply(const int topic_number){
 	unsigned char *server_reply = (unsigned char*)malloc(REPLY_BUFFER_128* sizeof(unsigned char));
 	memset((void *)server_reply,'\0', REPLY_BUFFER_128);
 
-	/* TODO verify valid topic */
-	file_content = findTopic(topic_number);
-
-	/* build reply */
-	sprintf((char *) server_reply, "AWTES %s\n",file_content);
+	if ((file_content = findTopic(topic_number)) == NULL){
+		strcpy((char *)server_reply, "EOF\n");
+		return server_reply;
+	}
+	sprintf((char *) server_reply, "AWTES %s\n",file_content); /* build reply */
 	free(file_content);
 	return server_reply;
 }
@@ -268,7 +270,7 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
 	/* read file */
 	sprintf(path, "quest/%d/T%dQ%d.pdf", topic, topic, user_info->internal_qid);
 	if ((fd = open(path, O_RDONLY, S_IRUSR|S_IWUSR)) == -1){
-		perror("[ERROR] Opening .pdf file\n"); /* handle error */
+		perror("[ERROR] Opening .pdf file"); /* handle error */
 		exit(-1);
 	}
 	placeholder_ptr = placeholder;
