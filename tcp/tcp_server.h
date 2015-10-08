@@ -11,7 +11,6 @@ int start_tcp_server(int, int*);
 /* Handle SIGTERM */
 void sigterm_handler(int x){
 	printf("[SERVER_MSG] Arrrhhh!!! You killed me with signal %d!!!\n", x);
-
 	exit(0);
 }
 
@@ -24,7 +23,7 @@ int start_tcp_server(int port, int *socket_fd) {
 
 	/* TCP socket atribution create an endpoint for TCP communication. */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1) {
-		perror("Error: socket()\n");
+		perror("Error: socket()");
 		exit(1);
 	}
 
@@ -44,7 +43,7 @@ int start_tcp_server(int port, int *socket_fd) {
     it should bind a socket to a local interface address. 
     */
 	if(bind(fd,(struct sockaddr*) &addr, sizeof(addr)) == -1){
-		perror("Error: bind()\nTheres already a TCP server in the specified port.\n");
+		perror("Error: bind()\nTheres already a TCP server in the specified port.");
 		exit(1);
 	}
 
@@ -53,7 +52,7 @@ int start_tcp_server(int port, int *socket_fd) {
 
 	/* listen for connections on a socket */
 	if(listen(fd,5) == -1) {
-		perror("Error: listen()\n");
+		perror("Error: listen()");
 		exit(1);
 	}
 
@@ -72,14 +71,14 @@ int start_tcp_server(int port, int *socket_fd) {
 				exit(1);
 			}
 			/* set in the begining */
-			memset(request, '\0', REQUEST_BUFFER_64);
+			memset((void*)request, '\0', REQUEST_BUFFER_64);
 			request_ptr = request;
 
 			/* reading cycle */
 			while((bytes_read = read(newfd, received_buffer, REQUEST_BUFFER_64)) != 0){
 
 				if(bytes_read == -1){
-					perror("Error: read()\n");
+					perror("Error: read()");
 					exit(1);
 				}
 				/* left here in case we decide to separate read routine */
@@ -143,6 +142,8 @@ int start_tcp_server(int port, int *socket_fd) {
 					printf("\rSending IQR request\n> ");
 					fflush(stdout);
 					server_reply = IQR_request(udp_fd, &udp_addr, user_info->sid, user_info->qid, topic, user_info->score);
+					printf("\rGot AWI reply: %s> ", server_reply);
+					fflush(stdout);
 
 					free(server_reply);
 					close(udp_fd);
@@ -165,7 +166,7 @@ int start_tcp_server(int port, int *socket_fd) {
 			{	
 				if((bytes_written = write(newfd, reply_ptr, bytes_to_write)) <= 0)
 				{
-					perror("Error: write()\n");
+					perror("Error: write()");
 					exit(1);
 				}
 				bytes_to_write -= bytes_written;
