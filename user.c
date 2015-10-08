@@ -26,8 +26,6 @@ int main(int argc, char *argv[]){
 
 	while(1){
 		printf("> ");
-
-		/* TODO Still causes segmentation fault */
 		if (getline(&cmd, &line_size, stdin) == -1){
 			perror("[ERROR] no command");
 			continue;

@@ -16,12 +16,10 @@ int main(int argc, char** argv)
 		port = DEFAULT_PORT_ECP;
 	else if(argc == 3 && ((strcmp(argv[1],"-p")) == 0))
 			port = atoi(argv[2]);
-	else
-	{
+	else{
 		printf("ERROR: Wrong input format.\ninput: ./ECP [-p ECPport]\n");
 		exit(1);
 	}
-
 	/* Create a UDP server on port */
 	server_pid = start_udp_server(port, &socket_fd);
 	printf("Server PID: %d\n", server_pid);
@@ -29,7 +27,6 @@ int main(int argc, char** argv)
 	printf("Type \"exit\" to terminate server\n");
 	while(1){
 		printf("> ");
-		/* TODO Still causes segmentation fault */
 		if ((fgets(cmd, 50, stdin)) == NULL){
 			perror("[ERROR] no command\n");
 			continue;

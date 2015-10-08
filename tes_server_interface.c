@@ -29,7 +29,6 @@ int main(int argc, char** argv)
 	printf("Type \"exit\" to terminate server\n");
 	while(1){
 		printf("> ");
-		/* TODO Still causes segmentation fault */
 		if ((fgets(cmd, 50, stdin)) == NULL){
 			perror("[ERROR] no command");
 			continue;

@@ -55,6 +55,9 @@
 #define TOPICS_FILE "./topics.txt"
 #define TES_CONFIG_FILE "./tes_server.config"
 
+/* Macros */
+#define MAX(A,B) ((A)>=(B)?(A):(B))
+
 /* -------------------------------- */
 
 /* Server structure, contains server information */

@@ -58,8 +58,8 @@ unsigned char *receive_udp_reply(int fd, const struct sockaddr_in *addr){
 	unsigned char server_reply[REPLY_BUFFER_1024];
 	unsigned char *returned_server_reply = (unsigned char *) malloc(REPLY_BUFFER_1024 * sizeof(unsigned char));
 
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 100000; /* 100 ms */
+	timeout.tv_sec = 2;
+	timeout.tv_usec = 0;
 	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0){ /* set timeout */
 		perror("[ERROR] Couldn't set timeout");
 	}

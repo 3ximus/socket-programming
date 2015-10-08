@@ -1,8 +1,6 @@
 #include "../resources.h"
 #include "../comm_protocol.h"
 
-
-
 /*
  * Starts a server on given or default port
  * Creates a new socket using UDP and IPv4 and stores its file descriptor on the 2nd argument
@@ -13,9 +11,7 @@
  */
 int start_udp_server(int, int*);
 
-
 /* ----------------------------------------------- */
-
 
 /* Handle SIGTERM */
 void sigterm_handler(int x){
