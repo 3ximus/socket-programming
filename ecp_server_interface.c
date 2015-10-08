@@ -14,8 +14,8 @@ int main(int argc, char** argv)
 
 	if(argc == 1)
 		port = DEFAULT_PORT_ECP;
-	else if(argc == 3)
-		port = atoi(argv[2]);
+	else if(argc == 3 && ((strcmp(argv[1],"-p")) == 0))
+			port = atoi(argv[2]);
 	else
 	{
 		printf("ERROR: Wrong input format.\ninput: ./ECP [-p ECPport]\n");
