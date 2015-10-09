@@ -86,6 +86,7 @@ int start_tcp_server(int port, int *socket_fd) {
 						time_t now;
 						time(&now);
 
+						/* search the sid on the user_info table */
 						for (table_pos = 0; table_pos < USER_TABLE_SIZE; table_pos++){
 							if (user_info[table_pos].sid == 0){
 								user_info[table_pos].sid = atoi(parsed_request[1]);
@@ -97,8 +98,7 @@ int start_tcp_server(int port, int *socket_fd) {
 						/* set expiration time */
 						reply_msg = AQT_reply(&user_info[table_pos], now, topic);
 						bytes_to_write = REPLY_BUFFER_OVER_9000;
-						printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
-						fflush(stdout);
+						printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");fflush(stdout);
 						break;
 					}
 					else if (strcmp(parsed_request[0], "RQS") == 0) {
@@ -109,6 +109,7 @@ int start_tcp_server(int port, int *socket_fd) {
 						time_t now;
 						time(&now);
 						
+						/* search the sid on the user_info table */
 						for (table_pos = 0; table_pos < USER_TABLE_SIZE; table_pos++){
 							if (user_info[table_pos].sid == 0 && table_pos == USER_TABLE_SIZE - 1){
 								is_error = 1; /* no sid found and end of table reached */
@@ -117,20 +118,19 @@ int start_tcp_server(int port, int *socket_fd) {
 							if (user_info[table_pos].sid != atoi(parsed_request[1]))
 								continue;
 							if (user_info[table_pos].sid == atoi(parsed_request[1]) && strcmp(parsed_request[2], user_info[table_pos].qid) == 0)
-								break;
+								break; /* user found */
 						}
-						if (is_error == 1){
+						if (is_error == 1){ /* user unexistent or not wating for any reply */
 							reply_msg = ERR_reply();
 							bytes_to_write = 5;
 							is_error = 0;
-							printf("\rSending ERR reply\n> ");
-							fflush(stdout);
+							printf("\rSending ERR reply\n> ");fflush(stdout);
 							break;
 						}
 						
 						if (user_info[table_pos].deadline < now)
 							user_info[table_pos].score = -1; /* deadline missed */
-						else 
+						else
 							user_info[table_pos].score = calculate_score(topic, user_info[table_pos].internal_qid, parsed_request);
 
 						reply_msg = AQS_reply(user_info[table_pos].qid, user_info[table_pos].score);
@@ -138,18 +138,14 @@ int start_tcp_server(int port, int *socket_fd) {
 						printf("\rSending AQS reply: %s> ", reply_msg);
 						fflush(stdout);
 
-						/* ECP */
-						/* initiate a UDP client */
-						ecp.port = DEFAULT_PORT_ECP;
+						ecp.port = DEFAULT_PORT_ECP; /* this may be problematic */
 						gethostname((char *)ecp.name, sizeof(ecp.name));
-						udp_fd = start_udp_client(&udp_addr, &ecp);
+						udp_fd = start_udp_client(&udp_addr, &ecp); /* initiate a UDP client *//* initiate a UDP client */
 						
 						/* contact ecp */
-						printf("\rSending IQR request\n> ");
-						fflush(stdout);
+						printf("\rSending IQR request\n> ");fflush(stdout);
 						server_reply = IQR_request(udp_fd, &udp_addr, user_info[table_pos].sid,user_info[table_pos].qid, topic, user_info[table_pos].score);
-						printf("\rGot AWI reply: %s> ", server_reply);
-						fflush(stdout);
+						printf("\rGot AWI reply: %s> ", server_reply);fflush(stdout);
 
 						/* set this position as available again */
 						user_info[table_pos].sid = 0;
