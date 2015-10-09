@@ -152,22 +152,21 @@ unsigned char *RQT_request(int fd, int sid){
 unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	int n;
 	unsigned char *server_reply = NULL;
-	char request[REQUEST_BUFFER_32], sequence[10];
+	char request[REQUEST_BUFFER_64], sequence[BUFFER_32];
 	memset((void*)sequence, '\0', sizeof(sequence));
-
-	/* build request */
-	sprintf(request, "RQS %d %s ", sid,qid);
+	memset((void *)reply, '\0', REQUEST_BUFFER_64)
 
 	/* upper case */
 	for (n = 1; n < CMD_SIZE ;n++){
 		if (parsed_cmd[n][0] > 'D')
 			parsed_cmd[n][0] -= ('a' - 'A');
-		strcat(sequence, parsed_cmd[n]);
 		strcat(sequence, " ");
+		strcat(sequence, parsed_cmd[n]);
 	}
 
-	strcat(request, sequence);
-	request[strlen((char *)request) - 1] = '\n';
+	sprintf(request, "RQS %d %s", sid,qid); /* build request */
+	strncat(request, sequence, 10);
+	strcat(request, "\n");
 	
 	/* send request and wait for reply */
 	send_tcp_request(fd, (unsigned char*)request);
