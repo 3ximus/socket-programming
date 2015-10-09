@@ -66,7 +66,7 @@ int send_tcp_request(int fd, const unsigned char *request){
 
 unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 
-	int nread;
+	int nread, chr;
 	unsigned char *reply_buffer = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
 	unsigned char *reply_ptr;
 	unsigned char *reply  = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
@@ -84,8 +84,14 @@ unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 		/* move the "writing head" forward */
 		reply_ptr += nread;
 		
+		for (chr = 0; chr <= nread; chr++)
+			if (reply_buffer[chr] == '\n')
+				break;
+			
+		/* to make submit work
 		if (reply_buffer[nread - 1] == '\n')
 			break;
+		*/
 
 		/* if we read 0 bytes means EOF reached */
 		if(nread == 0)

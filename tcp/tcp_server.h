@@ -50,7 +50,6 @@ int start_tcp_server(int port, int *socket_fd) {
 
 	/* listen for connections on a socket */
 	if(listen(fd,5) == -1) {perror("[ERROR] listen()");exit(1);}
-
 	if ((child_pid = fork()) == -1) {perror("[ERROR] in fork");exit(1);} /* fork to a new process, leaving the interface to the user */
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
@@ -66,7 +65,7 @@ int start_tcp_server(int port, int *socket_fd) {
 			memset((void*)request, '\0', REQUEST_BUFFER_64);
 			request_ptr = request;
 
-			if ((child_pid = fork()) == -1) {perror("[ERROR] in fork");exit(1);}
+			if ((child_pid = fork()) == -1) {perror("[ERROR] in fork");exit(1);} /* fork to handle each connection */
 			else if (child_pid == 0){
 				/* reading cycle */
 				while((bytes_read = read(newfd, received_buffer, REQUEST_BUFFER_64)) != 0){

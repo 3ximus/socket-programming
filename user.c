@@ -103,7 +103,6 @@ int main(int argc, char *argv[]){
 				free(server_reply);
 				continue;
 			}
-
 			
 			server_reply[strlen((char *)server_reply) - 1] = '\0'; /* remove '\n' */
 			parsed_reply = parseString((char *)server_reply, " \n");
@@ -162,6 +161,7 @@ int main(int argc, char *argv[]){
 
 			free(parsed_reply);
 			free(parsed_reply_2);
+			close(pdf_fd);
 			close(tcp_socket);
 		}
 
