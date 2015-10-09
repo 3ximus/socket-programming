@@ -99,7 +99,7 @@ int start_tcp_server(int port, int *socket_fd) {
 							break;
 					}
 				} /* if */
-				else if (FD_ISSET(afd, &rfds)){
+				else if (FD_ISSET(afd, &rfds)){ /* afd is ready */
 					/* set in the begining */
 					memset((void*)request, '\0', REQUEST_BUFFER_64);
 					request_ptr = request;
