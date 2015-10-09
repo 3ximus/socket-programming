@@ -30,7 +30,6 @@
 #define DEFAULT_PORT_TES 59000
 
 /* Buffer sizes */
-
 #define BUFFER_2048	2048
 #define BUFFER_32 32
 #define BUFFER_64 64
@@ -47,8 +46,8 @@
 /* Maximum number of topics */
 #define TOPIC_NR 99
 #define ANSW_NR	5
-#define TRUE  1
-#define FALSE 0
+
+#define USER_TABLE_SIZE 10
 
 /* Default server log file */
 #define UDP_SERVER_LOG "./ecp_server.log"

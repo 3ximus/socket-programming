@@ -2,8 +2,7 @@
 #include "../comm_protocol.h"
 
 /* Global Variable */
-static struct user_table *user_info;
-
+struct user_table *user_info;
 
 /*
  * Starts a server on given or default port
@@ -55,9 +54,8 @@ int start_tcp_server(int port, int *socket_fd) {
 	if ((child_pid = fork()) == -1) {perror("[ERROR] in fork");exit(1);} /* fork to a new process, leaving the interface to the user */
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
-
 		/* map memory for the golbal variable in order to be shared between parent and child */
-		user_info = (struct user_table*)mmap(NULL, sizeof(struct user_table), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+		user_info = (struct user_table*)mmap(NULL, USER_TABLE_SIZE *sizeof(struct user_table), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
 		while(1) {
 			addrlen = sizeof(addr); /* sets the addrlen to be the size of the socket address structure */
@@ -84,13 +82,20 @@ int start_tcp_server(int port, int *socket_fd) {
 
 					/* Handle requests */
 					if (strcmp(parsed_request[0], "RQT") == 0){
+						int table_pos;
 						time_t now;
 						time(&now);
 
+						for (table_pos = 0; table_pos < USER_TABLE_SIZE; table_pos++){
+							if (user_info[table_pos].sid == 0){
+								user_info[table_pos].sid = atoi(parsed_request[1]);
+								user_info[table_pos].deadline = now + 600; /* time now + 10 minutes */
+								break;
+							}
+						}
+
 						/* set expiration time */
-						user_info->deadline = now + 600; /* time now + 10 minutes */
-						user_info->sid = atoi(parsed_request[1]);
-						reply_msg = AQT_reply(user_info, now, topic);
+						reply_msg = AQT_reply(&user_info[table_pos], now, topic);
 						bytes_to_write = REPLY_BUFFER_OVER_9000;
 						printf("\rSending AQT reply: TOO BIG TO SHOW\n> ");
 						fflush(stdout);
@@ -100,23 +105,35 @@ int start_tcp_server(int port, int *socket_fd) {
 						unsigned char *server_reply = NULL;
 						struct sockaddr_in udp_addr;
 						struct ecp_server ecp;
-						int udp_fd;
+						int udp_fd, table_pos, is_error = 0;
 						time_t now;
 						time(&now);
-						/* check if sid and qid dont match */
-						if (user_info->sid != atoi(parsed_request[1]) && strcmp(parsed_request[2], user_info->qid) != 0){
+						
+						for (table_pos = 0; table_pos < USER_TABLE_SIZE; table_pos++){
+							if (user_info[table_pos].sid == 0 && table_pos == USER_TABLE_SIZE - 1){
+								is_error = 1; /* no sid found and end of table reached */
+								break;
+							}
+							if (user_info[table_pos].sid != atoi(parsed_request[1]))
+								continue;
+							if (user_info[table_pos].sid == atoi(parsed_request[1]) && strcmp(parsed_request[2], user_info[table_pos].qid) == 0)
+								break;
+						}
+						if (is_error == 1){
 							reply_msg = ERR_reply();
 							bytes_to_write = 5;
+							is_error = 0;
 							printf("\rSending ERR reply\n> ");
 							fflush(stdout);
 							break;
 						}
-						if (user_info->deadline < now)
-							user_info->score = -1; /* deadline missed */
+						
+						if (user_info[table_pos].deadline < now)
+							user_info[table_pos].score = -1; /* deadline missed */
 						else 
-							user_info->score = calculate_score(topic, user_info->internal_qid, parsed_request);
+							user_info[table_pos].score = calculate_score(topic, user_info[table_pos].internal_qid, parsed_request);
 
-						reply_msg = AQS_reply(user_info->qid, user_info->score);
+						reply_msg = AQS_reply(user_info[table_pos].qid, user_info[table_pos].score);
 						bytes_to_write = REPLY_BUFFER_32;
 						printf("\rSending AQS reply: %s> ", reply_msg);
 						fflush(stdout);
@@ -130,9 +147,15 @@ int start_tcp_server(int port, int *socket_fd) {
 						/* contact ecp */
 						printf("\rSending IQR request\n> ");
 						fflush(stdout);
-						server_reply = IQR_request(udp_fd, &udp_addr, user_info->sid, user_info->qid, topic, user_info->score);
+						server_reply = IQR_request(udp_fd, &udp_addr, user_info[table_pos].sid,user_info[table_pos].qid, topic, user_info[table_pos].score);
 						printf("\rGot AWI reply: %s> ", server_reply);
 						fflush(stdout);
+
+						/* set this position as available again */
+						user_info[table_pos].sid = 0;
+						strcpy(user_info[table_pos].qid, "\0");
+						user_info[table_pos].deadline = 0;
+						user_info[table_pos].score = 0;
 
 						free(server_reply);
 						close(udp_fd);
@@ -162,7 +185,7 @@ int start_tcp_server(int port, int *socket_fd) {
 			do (ret = close(newfd)); while (ret == -1 && errno == EINTR);
 			if (ret == -1){perror("[ERROR] Closing file descriptor");exit(1);}
 		} /* while */
-		munmap(user_info, sizeof(struct user_table)); /* free the mapped memory */
+		munmap(user_info, USER_TABLE_SIZE * sizeof(struct user_table)); /* free the mapped memory */
 	}
 	free(parsed_request);
 	/* This is left in here just in case, because socket is closed on the ecp_server_interface */
