@@ -154,7 +154,7 @@ unsigned char *RQS_request(int fd, int sid, char* qid, char **parsed_cmd){
 	unsigned char *server_reply = NULL;
 	char request[REQUEST_BUFFER_64], sequence[BUFFER_32];
 	memset((void*)sequence, '\0', sizeof(sequence));
-	memset((void *)reply, '\0', REQUEST_BUFFER_64)
+	memset((void *)request, '\0', REQUEST_BUFFER_64);
 
 	/* upper case */
 	for (n = 1; n < CMD_SIZE ;n++){
