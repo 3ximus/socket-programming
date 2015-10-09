@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <sys/mman.h>
 
 /* System */
 #include <unistd.h>

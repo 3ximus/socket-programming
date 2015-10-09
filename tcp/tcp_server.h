@@ -1,6 +1,9 @@
 #include "../resources.h"
 #include "../comm_protocol.h"
 
+/* Golobal Variable */
+struct user_table *user_info;
+
 /*
  * Starts a server on given or default port
  * Creates a new socket using TCP and IPv4 and stores its file descriptor on the 2nd argument
@@ -51,15 +54,16 @@ int start_tcp_server(int port, int *socket_fd) {
 	if ((child_pid = fork()) == -1) {perror("[ERROR] in fork");exit(1);} /* fork to a new process, leaving the interface to the user */
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
-		struct user_table *user_info = (struct user_table *)malloc(sizeof(struct user_table));
 
 		while(1) {
 			addrlen = sizeof(addr); /* sets the addrlen to be the size of the socket address structure */
 			do newfd = accept(fd,(struct sockaddr*)&addr,(unsigned int*)&addrlen); /* accepts a connection on a socket */
 			while (newfd == -1 && errno == EINTR); /* while we dont accept a connection */
 
-			if (newfd == -1){perror("[ERROR] accept()");exit(1);}
+			/* map memory for the golbal variable in order to be shared between parent and child */
+			user_info = (struct user_table*)mmap(NULL, sizeof(struct user_table), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
+			if (newfd == -1){perror("[ERROR] accept()");exit(1);}
 			memset((void*)request, '\0', REQUEST_BUFFER_64);
 			request_ptr = request;
 
@@ -144,7 +148,6 @@ int start_tcp_server(int port, int *socket_fd) {
 				}
 
 				reply_ptr = reply_msg; /* point to begining of reply */
-
 				while(bytes_to_write > 0){	/* writing cycle */
 					if((bytes_written = write(newfd, reply_ptr, bytes_to_write)) <= 0){
 						perror("Error: write()");exit(1);}
@@ -158,9 +161,8 @@ int start_tcp_server(int port, int *socket_fd) {
 			printf("Launched new communication on PID: %d\n", child_pid);
 			do (ret = close(newfd)); while (ret == -1 && errno == EINTR);
 			if (ret == -1){perror("[ERROR] Closing file descriptor");exit(1);}
-
+			munmap(user_info, sizeof(struct user_table)); /* free the mapped memory */
 		} /* while */
-		free(user_info);
 	}
 	free(parsed_request);
 	/* This is left in here just in case, because socket is closed on the ecp_server_interface */
