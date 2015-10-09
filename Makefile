@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Wpedantic -g
+CFLAGS = -Wall -Wextra -Wpedantic
 EXECS =	ecp_server_interface tes_server_interface user
 
 all: $(EXECS)

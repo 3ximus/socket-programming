@@ -271,7 +271,7 @@ unsigned char *AQT_reply(struct user_table* user_info, time_t now, int topic){
 		exit(-1);
 	}
 	placeholder_ptr = placeholder;
-	while ((bytes_read = pread(fd, read_buffer, REPLY_BUFFER_OVER_9000)) > 0){
+	while ((bytes_read = read(fd, read_buffer, REPLY_BUFFER_OVER_9000)) > 0){
 		memcpy(placeholder_ptr, read_buffer, bytes_read);
 		placeholder_ptr += bytes_read; /* move pointer */
 		quest_size += bytes_read; /* increment size counter */
