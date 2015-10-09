@@ -78,7 +78,7 @@ int start_tcp_server(int port, int *socket_fd) {
 				perror("[ERROR] Error on select.");
 				exit(1);
 			}
-
+			/* do for every ready file descriptor */
 			for (;counter;counter--){
 				if (FD_ISSET(fd, &rfds)){ /* fd is ready to be read */
 					addrlen = sizeof(addr); /* sets the addrlen to be the size of the socket address structure */
