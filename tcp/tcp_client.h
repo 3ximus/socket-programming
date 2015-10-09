@@ -29,7 +29,7 @@ int start_tcp_client(const char *ip_addr, int port){
 
 	/* Atribuicao da socket TCP */
 	if((fd = socket(AF_INET,SOCK_STREAM,0)) == -1){
-		perror("Error: socket()");
+		perror("[ERROR] socket()");
 		exit(1);
 	}
 
@@ -53,7 +53,7 @@ int send_tcp_request(int fd, const unsigned char *request){
 
 	while(nleft > 0){
 		if((nwritten = write(fd, request, nleft)) <= 0){	
-			perror("Error: write()");
+			perror("[ERROR] write()");
 			exit(1);
 		}
 
@@ -66,7 +66,7 @@ int send_tcp_request(int fd, const unsigned char *request){
 
 unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 
-	int nread, chr;
+	int nread/*, chr*/;
 	unsigned char *reply_buffer = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
 	unsigned char *reply_ptr;
 	unsigned char *reply  = (unsigned char *)malloc(reply_buff_size * sizeof(unsigned char));
@@ -76,7 +76,7 @@ unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
  	
 	while(1){
 		if((nread = read(fd, reply_buffer, reply_buff_size)) == -1){
-			perror("Error: read()");
+			perror("[ERROR] read()");
 			exit(1);
 		}
 		/* copy the buffer to the reply ptr */
@@ -84,14 +84,8 @@ unsigned char *receive_tcp_reply(int fd, int reply_buff_size){
 		/* move the "writing head" forward */
 		reply_ptr += nread;
 		
-		for (chr = 0; chr <= nread; chr++)
-			if (reply_buffer[chr] == '\n')
-				break;
-			
-		/* to make submit work
-		if (reply_buffer[nread - 1] == '\n')
+		if (reply_buff_size > REPLY_BUFFER_128 && reply_buffer[nread - 1] == '\n')
 			break;
-		*/
 
 		/* if we read 0 bytes means EOF reached */
 		if(nread == 0)
