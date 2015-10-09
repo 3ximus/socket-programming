@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
 			/* this is to store AQT reply therefore 4 spaces are needed before data segment */
 			char **parsed_reply_2 = (char **)malloc(4 * sizeof(char *));
 			unsigned char *server_reply_ptr;
-			char filename[10];
+			char filename[BUFFER_32];
 			/*char parsed_time[30];*/
 			int quest_size, pdf_fd, written_bytes, i, offset = 0, err;
 
