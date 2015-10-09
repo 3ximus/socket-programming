@@ -1,8 +1,9 @@
 #include "../resources.h"
 #include "../comm_protocol.h"
 
-/* Golobal Variable */
-struct user_table *user_info;
+/* Global Variable */
+static struct user_table *user_info;
+
 
 /*
  * Starts a server on given or default port
@@ -55,13 +56,13 @@ int start_tcp_server(int port, int *socket_fd) {
 	/* The while loop is only run on the child process, leaving the parent to return the child_pid value */
 	if(child_pid == 0) {
 
+		/* map memory for the golbal variable in order to be shared between parent and child */
+		user_info = (struct user_table*)mmap(NULL, sizeof(struct user_table), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
 		while(1) {
 			addrlen = sizeof(addr); /* sets the addrlen to be the size of the socket address structure */
 			do newfd = accept(fd,(struct sockaddr*)&addr,(unsigned int*)&addrlen); /* accepts a connection on a socket */
 			while (newfd == -1 && errno == EINTR); /* while we dont accept a connection */
-
-			/* map memory for the golbal variable in order to be shared between parent and child */
-			user_info = (struct user_table*)mmap(NULL, sizeof(struct user_table), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
 
 			if (newfd == -1){perror("[ERROR] accept()");exit(1);}
 			memset((void*)request, '\0', REQUEST_BUFFER_64);
@@ -102,7 +103,6 @@ int start_tcp_server(int port, int *socket_fd) {
 						int udp_fd;
 						time_t now;
 						time(&now);
-
 						/* check if sid and qid dont match */
 						if (user_info->sid != atoi(parsed_request[1]) && strcmp(parsed_request[2], user_info->qid) != 0){
 							reply_msg = ERR_reply();
@@ -161,8 +161,8 @@ int start_tcp_server(int port, int *socket_fd) {
 			printf("Launched new communication on PID: %d\n", child_pid);
 			do (ret = close(newfd)); while (ret == -1 && errno == EINTR);
 			if (ret == -1){perror("[ERROR] Closing file descriptor");exit(1);}
-			munmap(user_info, sizeof(struct user_table)); /* free the mapped memory */
 		} /* while */
+		munmap(user_info, sizeof(struct user_table)); /* free the mapped memory */
 	}
 	free(parsed_request);
 	/* This is left in here just in case, because socket is closed on the ecp_server_interface */

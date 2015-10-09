@@ -33,6 +33,7 @@
 
 #define BUFFER_2048	2048
 #define BUFFER_32 32
+#define BUFFER_64 64
 #define LOG_BUFFER_SIZE 256
 
 #define REPLY_BUFFER_OVER_9000 2000000
@@ -69,7 +70,7 @@ struct ecp_server{
 
 /* tes server structure contains connection info */
 struct tes_server{
-	char qid[BUFFER_32];
+	char qid[BUFFER_64];
 	char ip_addr[16];
 	int port;
 	char time_limit[BUFFER_32];
